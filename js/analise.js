@@ -6,6 +6,7 @@ let dadosHistorico = null;
 async function carregarDados() {
   const el = document.getElementById('status-dados');
   try {
+    el.textContent = 'A carregar dados…';
     const [latest, historico] = await Promise.all([
       fetch('data/latest.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }),
       fetch('data/historico.json').then(r => { if (!r.ok) throw new Error(); return r.json(); }),

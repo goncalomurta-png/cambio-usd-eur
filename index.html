@@ -69,7 +69,9 @@
 
 <script src="js/analise.js"></script>
 <script src="js/relatorio.js"></script>
-<script>carregarDados();</script>
+<script>
+  carregarDados().then(() => analisar());
+</script>
 
 </body>
 </html>
