@@ -1,9 +1,9 @@
 {
   "updated": "2026-06-29",
   "taxa_atual": 0.87599,
-  "wise_taxa": 0.875197,
+  "wise_taxa": 0.875159,
   "wise_fee_usd_ref": 21.43,
-  "wise_eur_ref": 4357.23,
+  "wise_eur_ref": 4357.04,
   "wise_montante_ref": 5000,
   "wise_fee_fixo": 6.98,
   "wise_fee_variavel_pct": 0.289,
