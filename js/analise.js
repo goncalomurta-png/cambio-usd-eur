@@ -150,83 +150,91 @@ function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
 }
 
 // ── Recomendação por score ─────────────────────────────────────
+// Score 0-100: >60 = AGUARDAR, <40 = CONVERTER AGORA, 40-60 = PARCIAL
+// Factores que AUMENTAM score = razões para ESPERAR
+// Factores que DIMINUEM score = razões para CONVERTER JÁ
 function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanelas, melhorEntry,
-  proximaOtima, flexibilidade, deltaPct, rsi, macd, bollinger, volPct }) {
+  proximaOtima, flexibilidade, deltaPct, rsi, macd, bollinger }) {
 
-  let score  = 50;
+  let score = 50;
   const razoes = [];
+  const probMax = melhorEntry?.[1] || probAtual || 1;
 
-  // Qualidade da janela histórica vs melhor acessível dentro da flexibilidade
-  const probMax = melhorEntry?.[1] || 0;
+  // ── Janela histórica ───────────────────────────────────────────
   if (proximaOtima && proximaOtima.dias <= flexibilidade) {
-    const ganho = proximaOtima.prob - probAtual;
-    const urgencia = proximaOtima.dias <= 3 ? 1.5 : proximaOtima.dias <= 7 ? 1.2 : 1.0;
-    const penalidade = Math.min(Math.round(ganho * urgencia), 35);
-    score -= penalidade;
-    razoes.push(`Próxima janela óptima (${proximaOtima.prob.toFixed(1)}%) em apenas ${proximaOtima.dias} dias — actual é ${probAtual.toFixed(1)}%`);
-  } else if (probAtual / probMax >= 0.9) {
-    score += 20;
-    razoes.push(`Janela actual óptima: ${probAtual.toFixed(1)}% (máx do mês: ${probMax.toFixed(1)}%)`);
+    // Há janela melhor acessível → razão para esperar → SOBE score
+    const ganho    = proximaOtima.prob - probAtual;
+    const urgencia = proximaOtima.dias <= 3 ? 1.6 : proximaOtima.dias <= 7 ? 1.2 : 1.0;
+    const bonus    = Math.min(Math.round(ganho * urgencia), 40);
+    score += bonus;
+    razoes.push(`Janela ${proximaOtima.janela} em ${proximaOtima.dias} dias tem ${proximaOtima.prob.toFixed(1)}% vs ${probAtual.toFixed(1)}% agora — vale esperar`);
+  } else if (probAtual / probMax >= 0.85) {
+    // Janela actual é a melhor → converter agora → DESCE score
+    score -= 20;
+    razoes.push(`Janela actual óptima (${probAtual.toFixed(1)}%) — melhor momento histórico para converter`);
   } else {
-    const penalidade = Math.round((1 - probAtual / probMax) * 15);
-    score -= penalidade;
-    razoes.push(`Janela actual fraca: ${probAtual.toFixed(1)}% vs máx ${probMax.toFixed(1)}% — sem janela melhor dentro de ${flexibilidade} dias`);
+    // Janela fraca e sem alternativa melhor → ligeiro incentivo a converter
+    score -= Math.round((1 - probAtual / probMax) * 10);
+    razoes.push(`Janela actual fraca (${probAtual.toFixed(1)}%) sem alternativa melhor nos próximos ${flexibilidade} dias`);
   }
 
-  // Tendência de preço
+  // ── Tendência de preço ─────────────────────────────────────────
   if (tendencia === 'alta' && forcaTendencia > 0.15) {
     score += 12;
     razoes.push(`Taxa em tendência de alta (+${forcaTendencia.toFixed(2)}% vs MA20) — aguardar pode render mais`);
   } else if (tendencia === 'baixa' && forcaTendencia > 0.15) {
     score -= 12;
-    razoes.push(`Taxa em tendência de baixa (${forcaTendencia.toFixed(2)}% vs MA20) — converter antes que desça mais`);
+    razoes.push(`Taxa em tendência de baixa (−${forcaTendencia.toFixed(2)}% vs MA20) — converter antes que desça mais`);
+  } else {
+    razoes.push(`Taxa lateral (${forcaTendencia.toFixed(2)}% vs MA20)`);
   }
 
-  // RSI
+  // ── RSI ───────────────────────────────────────────────────────
   if (rsi !== null) {
     if (rsi > 68) {
       score -= 15;
-      razoes.push(`RSI ${rsi.toFixed(0)} — sobrecomprado (taxa tende a corrigir → converter)`);
+      razoes.push(`RSI ${rsi.toFixed(0)} — sobrecomprado, taxa tende a corrigir → converter`);
     } else if (rsi < 32) {
       score += 15;
-      razoes.push(`RSI ${rsi.toFixed(0)} — sobrevendido (taxa tende a recuperar → aguardar)`);
+      razoes.push(`RSI ${rsi.toFixed(0)} — sobrevendido, taxa tende a recuperar → aguardar`);
     } else {
       razoes.push(`RSI ${rsi.toFixed(0)} — zona neutra`);
     }
   }
 
-  // MACD
+  // ── MACD ──────────────────────────────────────────────────────
   if (macd) {
-    if (macd.histograma > 0 && macd.sinalCruz === 'alta') {
+    if (macd.sinalCruz === 'alta') {
       score += 10;
-      razoes.push('MACD cruzou para cima — momentum positivo (aguardar)');
-    } else if (macd.histograma < 0 && macd.sinalCruz === 'baixa') {
+      razoes.push('MACD cruzou para cima — momentum positivo → aguardar');
+    } else if (macd.sinalCruz === 'baixa') {
       score -= 10;
-      razoes.push('MACD cruzou para baixo — momentum negativo (converter)');
+      razoes.push('MACD cruzou para baixo — momentum negativo → converter');
     } else {
-      razoes.push(`MACD histograma: ${macd.histograma > 0 ? '+' : ''}${macd.histograma.toFixed(5)}`);
+      razoes.push(`MACD histograma: ${macd.histograma >= 0 ? '+' : ''}${macd.histograma.toFixed(5)}`);
     }
   }
 
-  // Bollinger
+  // ── Bollinger ─────────────────────────────────────────────────
   if (bollinger) {
     const pos = (bollinger.taxa - bollinger.inferior) / (bollinger.superior - bollinger.inferior);
     if (pos > 0.85) {
       score -= 10;
-      razoes.push(`Taxa próxima da Banda Superior de Bollinger (${(pos*100).toFixed(0)}%) — zona de resistência`);
+      razoes.push(`Taxa perto da Banda Superior Bollinger (${(pos*100).toFixed(0)}%) — resistência → converter`);
     } else if (pos < 0.15) {
       score += 10;
-      razoes.push(`Taxa próxima da Banda Inferior de Bollinger (${(pos*100).toFixed(0)}%) — zona de suporte`);
+      razoes.push(`Taxa perto da Banda Inferior Bollinger (${(pos*100).toFixed(0)}%) — suporte → aguardar`);
     }
   }
 
-  // Break-even fácil (diferencial de juro pequeno vs movimento esperado)
+  // ── Break-even fácil ──────────────────────────────────────────
   if (deltaPct < 0.05) {
     score += 8;
-    razoes.push(`Break-even fácil: taxa precisa de subir apenas ${deltaPct.toFixed(3)}% em ${0}d`);
+    razoes.push(`Break-even trivial: taxa só precisa de subir ${deltaPct.toFixed(3)}% para compensar`);
   }
 
-  // Decisão
+  // ── Decisão ───────────────────────────────────────────────────
+  score = Math.max(0, Math.min(100, score));
   let decisao, classe, emoji;
   if (score >= 60) {
     decisao = 'AGUARDAR'; classe = 'aguardar'; emoji = '⏳';
