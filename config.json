@@ -1,0 +1,9 @@
+{
+  "juro_usd_apy": 3.39,
+  "juro_eur_apy": 1.98,
+  "wise_pais_origem": "GB",
+  "wise_pais_destino": "DE",
+  "wise_montante_referencia": 5000,
+  "flexibilidade_padrao_dias": 15,
+  "montante_padrao_usd": 6600
+}

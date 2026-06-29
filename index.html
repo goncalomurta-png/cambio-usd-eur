@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Câmbio USD → EUR · Análise Wise</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <h1>💱 Câmbio USD → EUR</h1>
+  <p>Análise personalizada para conversão Wise · dados BCE em tempo real</p>
+</header>
+
+<main>
+
+  <!-- ── Formulário ── -->
+  <section class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="montante">Montante (USD)</label>
+        <input type="number" id="montante" value="6600" min="100" step="100">
+      </div>
+      <div class="form-group">
+        <label for="flexibilidade">Flexibilidade (dias)</label>
+        <input type="number" id="flexibilidade" value="15" min="1" max="30">
+      </div>
+      <button id="btn-analisar" onclick="analisar()">Analisar →</button>
+    </div>
+    <div id="status-dados" class="status-dados">A carregar dados…</div>
+  </section>
+
+  <!-- ── Relatório (oculto até à primeira análise) ── -->
+  <div id="relatorio" style="display:none">
+
+    <!-- Navegação por âncoras -->
+    <nav id="nav-relatorio">
+      <a href="#recomendacao">Recomendação</a>
+      <a href="#valores">Valores</a>
+      <a href="#tecnicos">Indicadores</a>
+      <a href="#tendencia">Tendência</a>
+      <a href="#janelas">Janelas</a>
+      <a href="#break-even">Break-even</a>
+      <a href="#macro">Macro</a>
+      <a href="#plano">Plano</a>
+    </nav>
+
+    <section id="recomendacao" class="card"></section>
+    <section id="valores"      class="card"></section>
+    <section id="tecnicos"     class="card"></section>
+    <section id="tendencia"    class="card"></section>
+    <section id="janelas"      class="card"></section>
+    <section id="break-even"   class="card"></section>
+    <section id="macro"        class="card"></section>
+    <section id="plano"        class="card"></section>
+
+  </div>
+
+</main>
+
+<footer>
+  <p>
+    Taxas BCE via <a href="https://frankfurter.dev" target="_blank">Frankfurter</a> ·
+    Fees e taxa real <a href="https://wise.com" target="_blank">Wise</a> ·
+    Actualizado em <span id="ultima-actualizacao">—</span>
+  </p>
+</footer>
+
+<script src="js/analise.js"></script>
+<script src="js/relatorio.js"></script>
+<script>carregarDados();</script>
+
+</body>
+</html>

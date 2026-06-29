@@ -1,0 +1,31 @@
+name: Actualizar Dados de Câmbio
+
+on:
+  schedule:
+    - cron: '0 18 * * 1-5'  # Dias úteis às 18h UTC (após fecho BCE)
+  workflow_dispatch:          # Permite trigger manual no GitHub
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Buscar dados
+        run: python scripts/fetch_data.py
+
+      - name: Commit e push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/latest.json
+          git diff --staged --quiet || git commit -m "dados: actualizar taxas $(date +%Y-%m-%d)"
+          git push
