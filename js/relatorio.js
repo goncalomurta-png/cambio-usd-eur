@@ -222,15 +222,30 @@ function secPlano(r) {
 
   const acaoHoje = {
     'CONVERTER AGORA': `✅ Converter $${fmt(r.montante)} na Wise agora · recebes €${fmtEUR(r.eurHoje)}`,
-    'AGUARDAR': `⏳ Não converter — monitorizar taxa diariamente`,
+    'AGUARDAR':        `⏳ Não converter — aguardar janela óptima`,
     'CONVERSÃO PARCIAL': `⚖️ Converter 50% ($${fmt(r.montante / 2)}) hoje → €${eurParcial50} · manter o resto`,
   }[r.recomendacao.decisao];
 
-  const itens = [
-    { data: 'Hoje',                         acao: acaoHoje },
-    { data: `+5 dias (${fmtData(d5)})`,     acao: `Converter se taxa Wise ≥ ${metaConvert} EUR/USD` },
-    { data: `+${r.flexibilidade}d (${fmtData(dMax)})`, acao: `Stop-loss: converter tudo se taxa Wise < ${stopLoss} EUR/USD` },
-  ];
+  const itens = [];
+  itens.push({ data: 'Hoje', acao: acaoHoje });
+
+  if (r.recomendacao.decisao === 'CONVERTER AGORA') {
+    itens.push({ data: `+5 dias (${fmtData(d5)})`, acao: 'Conversão já realizada' });
+    itens.push({ data: `+${r.flexibilidade}d (${fmtData(dMax)})`, acao: 'Conversão já realizada' });
+  } else if (r.proximaOtima) {
+    const dataOtima = r.proximaOtima.data;
+    itens.push({
+      data: `${fmtData(dataOtima)} (+${r.proximaOtima.dias}d)`,
+      acao: `⭐ Converter na janela óptima dias ${r.proximaOtima.janela} (${r.proximaOtima.prob.toFixed(1)}%) · meta taxa ≥ ${metaConvert} EUR/USD`,
+    });
+    itens.push({
+      data: `Limite (${fmtData(dMax)})`,
+      acao: `Stop-loss: converter tudo mesmo que taxa < ${stopLoss} EUR/USD`,
+    });
+  } else {
+    itens.push({ data: `+5 dias (${fmtData(d5)})`,     acao: `Converter se taxa Wise ≥ ${metaConvert} EUR/USD` });
+    itens.push({ data: `+${r.flexibilidade}d (${fmtData(dMax)})`, acao: `Stop-loss: converter tudo se taxa Wise < ${stopLoss} EUR/USD` });
+  }
 
   document.getElementById('plano').innerHTML = `
     <h2>📋 Plano de acção</h2>

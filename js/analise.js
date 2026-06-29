@@ -156,17 +156,21 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
   let score  = 50;
   const razoes = [];
 
-  // Qualidade da janela histórica
-  const probMax   = melhorEntry?.[1] || 0;
-  const ratioProb = probMax > 0 ? probAtual / probMax : 0;
-  if (ratioProb >= 0.9) {
+  // Qualidade da janela histórica vs melhor acessível dentro da flexibilidade
+  const probMax = melhorEntry?.[1] || 0;
+  if (proximaOtima && proximaOtima.dias <= flexibilidade) {
+    const ganho = proximaOtima.prob - probAtual;
+    const urgencia = proximaOtima.dias <= 3 ? 1.5 : proximaOtima.dias <= 7 ? 1.2 : 1.0;
+    const penalidade = Math.min(Math.round(ganho * urgencia), 35);
+    score -= penalidade;
+    razoes.push(`Próxima janela óptima (${proximaOtima.prob.toFixed(1)}%) em apenas ${proximaOtima.dias} dias — actual é ${probAtual.toFixed(1)}%`);
+  } else if (probAtual / probMax >= 0.9) {
     score += 20;
     razoes.push(`Janela actual óptima: ${probAtual.toFixed(1)}% (máx do mês: ${probMax.toFixed(1)}%)`);
-  } else if (proximaOtima && proximaOtima.dias <= flexibilidade) {
-    score -= 15;
-    razoes.push(`Próxima janela óptima (${proximaOtima.prob.toFixed(1)}%) em ${proximaOtima.dias} dias — vale a pena esperar`);
   } else {
-    razoes.push(`Janela actual: ${probAtual.toFixed(1)}% (histórico ${Object.values(probJanelas).map(v=>v.toFixed(0)+'%').join(', ')})`);
+    const penalidade = Math.round((1 - probAtual / probMax) * 15);
+    score -= penalidade;
+    razoes.push(`Janela actual fraca: ${probAtual.toFixed(1)}% vs máx ${probMax.toFixed(1)}% — sem janela melhor dentro de ${flexibilidade} dias`);
   }
 
   // Tendência de preço
