@@ -13,8 +13,14 @@ async function carregarDados() {
     ]);
     dadosLatest   = latest;
     dadosHistorico = historico;
-    el.className  = 'status-dados ok';
-    el.textContent = `✓ Dados de ${latest.updated} · BCE: 1 USD = ${latest.taxa_atual} EUR · Wise: ${latest.wise_taxa} EUR`;
+    const diasAtraso = Math.floor((Date.now() - new Date(latest.updated + 'T00:00:00Z')) / 86400000);
+    if (diasAtraso > 1) {
+      el.className  = 'status-dados aviso';
+      el.textContent = `⚠️ Dados com ${diasAtraso} dias de atraso (${latest.updated}) — GitHub Action pode não ter corrido`;
+    } else {
+      el.className  = 'status-dados ok';
+      el.textContent = `✓ Dados de ${latest.updated} · BCE: 1 USD = ${latest.taxa_atual} EUR · Wise: ${latest.wise_taxa} EUR`;
+    }
     document.getElementById('ultima-actualizacao').textContent = latest.updated;
   } catch {
     el.className  = 'status-dados err';
@@ -31,30 +37,16 @@ async function analisar() {
   const montante      = parseFloat(document.getElementById('montante').value) || 6600;
   const flexibilidade = parseInt(document.getElementById('flexibilidade').value)   || 15;
 
-  // Tenta buscar taxa Wise em tempo real para o montante exacto
-  const wise = await fetchWiseRealtime(montante) || estimarWise(montante);
+  // Wise realtime via CORS é sempre bloqueada no browser — usa estimativa dos dados guardados
+  const wise = estimarWise(montante);
 
-  const resultado = calcularAnalise(montante, flexibilidade, wise, dadosLatest, dadosHistorico);
-  gerarRelatorio(resultado);
-
-  document.getElementById('relatorio').style.display = 'block';
-  document.getElementById('recomendacao').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ── Wise em tempo real (CORS best-effort) ──────────────────────
-async function fetchWiseRealtime(amount) {
   try {
-    const url = `https://api.wise.com/v3/comparisons/?sourceCurrency=USD&targetCurrency=EUR&sendAmount=${amount}&sourceCountry=GB&targetCountry=DE`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return null;
-    const data = await r.json();
-    const wise = data.providers?.find(p => p.alias === 'wise');
-    if (!wise) return null;
-    const quote = wise.quotes?.find(q => q.markup === 0.0) || wise.quotes?.[0];
-    if (!quote) return null;
-    return { taxa: quote.rate, fee: quote.fee, eur: quote.receivedAmount, live: true };
-  } catch {
-    return null;
+    const resultado = calcularAnalise(montante, flexibilidade, wise, dadosLatest, dadosHistorico);
+    gerarRelatorio(resultado);
+    document.getElementById('relatorio').style.display = 'block';
+    document.getElementById('recomendacao').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    alert('Erro na análise: ' + e.message);
   }
 }
 
@@ -72,15 +64,18 @@ function estimarWise(montante) {
 
 // ── Análise principal ──────────────────────────────────────────
 function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
+  // UTC para consistência com dados BCE (sem desfasamento de timezone)
   const hoje  = new Date();
-  const mes   = hoje.getMonth();     // 0-11
-  const dia   = hoje.getDate();      // 1-31
+  const mes   = hoje.getUTCMonth();  // 0-11
+  const dia   = hoje.getUTCDate();   // 1-31
   const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const mesNome = meses[mes];
 
+  if (!latest.historico || latest.historico.length < 30) throw new Error('Histórico insuficiente (mínimo 30 dias)');
   const taxas    = latest.historico.map(d => d.taxa);
   const datas    = latest.historico.map(d => d.data);
   const taxaAtual = latest.taxa_atual;
+  if (!taxaAtual) throw new Error('Taxa actual em falta no JSON de dados');
 
   // Médias móveis
   const ma7  = media(taxas.slice(-7));
@@ -128,6 +123,9 @@ function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
   // Calendário macro
   const eventosMacro = getEventosMacro(historico.calendario_macro, hoje, flexibilidade + 10);
 
+  // Distribuição de probabilidade da espera (N1)
+  const distEspera = calcularDistribuicaoEspera(taxas, taxaAtual, flexibilidade);
+
   // Recomendação
   const rec = calcularRecomendacao({
     tendencia, forcaTendencia, probAtual, probJanelas, melhorEntry,
@@ -141,12 +139,42 @@ function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
     rsi, macd, bollinger,
     janela, probAtual, probJanelas, melhorEntry, proximaOtima,
     ganhoJuro, taxaBreakEven, deltaNeeded, deltaPct,
-    eventosMacro,
+    eventosMacro, distEspera,
     juroUSD: juroUSD * 100, juroEUR: juroEUR * 100,
     historico: latest.historico,
     datas,
     recomendacao: rec,
   };
+}
+
+// ── Distribuição de probabilidade da espera (N1) ──────────────
+// Com base na volatilidade histórica recente, qual a prob de a taxa subir X% em Y dias?
+function calcularDistribuicaoEspera(taxas, taxaAtual, maxDias) {
+  if (taxas.length < 30) return null;
+  const retornos = [];
+  for (let i = 1; i < taxas.length; i++) retornos.push((taxas[i] - taxas[i-1]) / taxas[i-1]);
+  const mu  = media(retornos);
+  const sig = desvPad(retornos);
+
+  const horizontes = [5, 10, 15, maxDias].filter((v, i, a) => a.indexOf(v) === i && v <= maxDias + 5);
+  return horizontes.map(dias => {
+    const muTotal  = mu * dias;
+    const sigTotal = sig * Math.sqrt(dias);
+    // Prob de taxa subir pelo menos 0.5%
+    const z05  = (-0.005 - muTotal) / sigTotal;
+    const z10  = (-0.010 - muTotal) / sigTotal;
+    const prob05 = Math.round((1 - normCDF(z05)) * 100);
+    const prob10 = Math.round((1 - normCDF(z10)) * 100);
+    return { dias, prob05, prob10, sigTotal: (sigTotal * 100).toFixed(2) };
+  });
+}
+
+// Aproximação CDF normal (Abramowitz & Stegun 26.2.17)
+function normCDF(z) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp(-z * z / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.7814779 + t * (-1.8212560 + t * 1.3302744))));
+  return z >= 0 ? 1 - p : p;
 }
 
 // ── Recomendação por score ─────────────────────────────────────
@@ -189,43 +217,46 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
     razoes.push(`Taxa lateral (${forcaTendencia.toFixed(2)}% vs MA20)`);
   }
 
-  // ── RSI ───────────────────────────────────────────────────────
+  // ── Indicadores técnicos (RSI + MACD + Bollinger) ────────────
+  // Contribuição máxima conjunta: ±20 pontos (evita triple-counting)
+  let techScore = 0;
+
   if (rsi !== null) {
-    if (rsi > 68) {
-      score -= 15;
+    if (rsi > 70) {
+      techScore -= 10;
       razoes.push(`RSI ${rsi.toFixed(0)} — sobrecomprado, taxa tende a corrigir → converter`);
-    } else if (rsi < 32) {
-      score += 15;
+    } else if (rsi < 30) {
+      techScore += 10;
       razoes.push(`RSI ${rsi.toFixed(0)} — sobrevendido, taxa tende a recuperar → aguardar`);
     } else {
       razoes.push(`RSI ${rsi.toFixed(0)} — zona neutra`);
     }
   }
 
-  // ── MACD ──────────────────────────────────────────────────────
   if (macd) {
     if (macd.sinalCruz === 'alta') {
-      score += 10;
+      techScore += 8;
       razoes.push('MACD cruzou para cima — momentum positivo → aguardar');
     } else if (macd.sinalCruz === 'baixa') {
-      score -= 10;
+      techScore -= 8;
       razoes.push('MACD cruzou para baixo — momentum negativo → converter');
     } else {
       razoes.push(`MACD histograma: ${macd.histograma >= 0 ? '+' : ''}${macd.histograma.toFixed(5)}`);
     }
   }
 
-  // ── Bollinger ─────────────────────────────────────────────────
   if (bollinger) {
     const pos = (bollinger.taxa - bollinger.inferior) / (bollinger.superior - bollinger.inferior);
-    if (pos > 0.85) {
-      score -= 10;
+    if (pos > 0.80) {
+      techScore -= 6;
       razoes.push(`Taxa perto da Banda Superior Bollinger (${(pos*100).toFixed(0)}%) — resistência → converter`);
-    } else if (pos < 0.15) {
-      score += 10;
+    } else if (pos < 0.20) {
+      techScore += 6;
       razoes.push(`Taxa perto da Banda Inferior Bollinger (${(pos*100).toFixed(0)}%) — suporte → aguardar`);
     }
   }
+
+  score += Math.max(-20, Math.min(20, techScore));
 
   // ── Break-even fácil ──────────────────────────────────────────
   if (deltaPct < 0.05) {
@@ -233,12 +264,12 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
     razoes.push(`Break-even trivial: taxa só precisa de subir ${deltaPct.toFixed(3)}% para compensar`);
   }
 
-  // ── Decisão ───────────────────────────────────────────────────
+  // ── Decisão (zona PARCIAL alargada: 35-65) ────────────────────
   score = Math.max(0, Math.min(100, score));
   let decisao, classe, emoji;
-  if (score >= 60) {
+  if (score >= 65) {
     decisao = 'AGUARDAR'; classe = 'aguardar'; emoji = '⏳';
-  } else if (score <= 40) {
+  } else if (score <= 35) {
     decisao = 'CONVERTER AGORA'; classe = 'converter'; emoji = '✅';
   } else {
     decisao = 'CONVERSÃO PARCIAL'; classe = 'parcial'; emoji = '⚖️';
@@ -250,44 +281,49 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
 // ── Indicadores técnicos ───────────────────────────────────────
 function calcularRSI(prices, period = 14) {
   if (prices.length < period + 1) return null;
-  const slice = prices.slice(-(period + 10));
+  // Warm-up sobre toda a série para Wilder smoothing estável
   let gains = 0, losses = 0;
   for (let i = 1; i <= period; i++) {
-    const d = slice[i] - slice[i - 1];
+    const d = prices[i] - prices[i - 1];
     if (d > 0) gains += d; else losses += Math.abs(d);
   }
   let avgGain = gains / period;
   let avgLoss = losses / period;
-  for (let i = period + 1; i < slice.length; i++) {
-    const d = slice[i] - slice[i - 1];
+  for (let i = period + 1; i < prices.length; i++) {
+    const d = prices[i] - prices[i - 1];
     avgGain = (avgGain * (period - 1) + Math.max(d, 0)) / period;
     avgLoss = (avgLoss * (period - 1) + Math.max(-d, 0)) / period;
   }
   if (avgLoss === 0) return 100;
-  const rs = avgGain / avgLoss;
-  return 100 - 100 / (1 + rs);
+  return 100 - 100 / (1 + avgGain / avgLoss);
 }
 
 function calcularMACD(prices, fast = 12, slow = 26, signal = 9) {
   if (prices.length < slow + signal) return null;
-  const emaFast = calcularEMA(prices, fast);
-  const emaSlow = calcularEMA(prices, slow);
-  if (!emaFast || !emaSlow) return null;
-  const macdLine = emaFast - emaSlow;
 
-  // Linha de sinal (EMA do MACD das últimas N sessões)
-  const macdSeries = prices.slice(-(slow + signal)).map((_, i, arr) => {
-    const ef = calcularEMA(prices.slice(0, prices.length - arr.length + i + 1), fast);
-    const es = calcularEMA(prices.slice(0, prices.length - arr.length + i + 1), slow);
-    return (ef && es) ? ef - es : 0;
-  });
-  const signalLine = calcularEMA(macdSeries, signal);
-  const hist       = signalLine ? macdLine - signalLine : 0;
-  const prevHist   = macdSeries.length >= 2 ? macdSeries[macdSeries.length - 2] - signalLine : hist;
+  // Séries EMA completas (uma passagem por cada)
+  const emaFastSeries = calcularEMASeries(prices, fast);
+  const emaSlowSeries = calcularEMASeries(prices, slow);
+  if (!emaFastSeries.length || !emaSlowSeries.length) return null;
+
+  // Alinhar pelo fim: slow começa depois de fast → offset = slow - fast
+  const offset = emaFastSeries.length - emaSlowSeries.length;
+  const macdSeries = emaSlowSeries.map((es, i) => emaFastSeries[i + offset] - es);
+
+  if (macdSeries.length < signal) return null;
+
+  const signalSeries = calcularEMASeries(macdSeries, signal);
+  const macdLast   = macdSeries[macdSeries.length - 1];
+  const signalLast = signalSeries[signalSeries.length - 1];
+  const hist       = macdLast - signalLast;
+
+  const macdPrev   = macdSeries[macdSeries.length - 2] ?? macdLast;
+  const signalPrev = signalSeries[signalSeries.length - 2] ?? signalLast;
+  const prevHist   = macdPrev - signalPrev;
 
   return {
-    macd: macdLine,
-    sinal: signalLine || 0,
+    macd: macdLast,
+    sinal: signalLast,
     histograma: hist,
     sinalCruz: hist > 0 && prevHist <= 0 ? 'alta' : hist < 0 && prevHist >= 0 ? 'baixa' : 'sem',
   };
@@ -306,6 +342,7 @@ function calcularBollinger(prices, period = 20, mult = 2) {
   };
 }
 
+// EMA escalar (valor final apenas)
 function calcularEMA(prices, period) {
   if (prices.length < period) return null;
   const k = 2 / (period + 1);
@@ -314,15 +351,30 @@ function calcularEMA(prices, period) {
   return ema;
 }
 
+// EMA como série completa (necessário para MACD correcto)
+function calcularEMASeries(prices, period) {
+  if (prices.length < period) return [];
+  const k = 2 / (period + 1);
+  const result = [];
+  let ema = media(prices.slice(0, period));
+  result.push(ema);
+  for (let i = period; i < prices.length; i++) {
+    ema = prices[i] * k + ema * (1 - k);
+    result.push(ema);
+  }
+  return result;
+}
+
 // ── Calendário macro ───────────────────────────────────────────
 function getEventosMacro(calendario, hoje, diasHorizonte) {
   if (!calendario) return [];
   const eventos = [];
   const limite  = new Date(hoje); limite.setDate(limite.getDate() + diasHorizonte);
+  const anoAtual = hoje.getUTCFullYear();
 
   const adicionar = (datas, nome, tipo) => {
     (datas || []).forEach(d => {
-      const data = new Date(d + 'T12:00:00');
+      const data = new Date(d + 'T12:00:00Z');
       if (data >= hoje && data <= limite) {
         const dias = Math.round((data - hoje) / 86400000);
         eventos.push({ data: d, nome, tipo, dias });
@@ -330,8 +382,11 @@ function getEventosMacro(calendario, hoje, diasHorizonte) {
     });
   };
 
-  adicionar(calendario.fed_2026, 'Reunião Fed (FOMC)', 'fed');
-  adicionar(calendario.bce_2026, 'Reunião BCE', 'bce');
+  // Suporta qualquer ano presente no calendário (fed_YYYY / bce_YYYY)
+  [anoAtual, anoAtual + 1].forEach(ano => {
+    adicionar(calendario[`fed_${ano}`], 'Reunião Fed (FOMC)', 'fed');
+    adicionar(calendario[`bce_${ano}`], 'Reunião BCE', 'bce');
+  });
 
   return eventos.sort((a, b) => a.dias - b.dias);
 }
@@ -356,7 +411,7 @@ function encontrarProximaOtima(diaAtual, hoje, probJanelas, probAtual, maxDias) 
     const janela  = janelas[idx];
     const inicio  = inicios[idx];
     const prob    = probJanelas[janela] || 0;
-    if (prob <= probAtual) continue;
+    if (prob - probAtual < 3) continue; // diferença mínima de 3pp para valer a pena esperar
 
     let data = new Date(hoje);
     if (inicio > diaAtual) {
@@ -380,4 +435,9 @@ function media(arr) {
 function desvPad(arr) {
   const m = media(arr);
   return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length);
+}
+
+// EUR recebidos após taxa e fee (partilhado entre analise e relatorio)
+function eurAtaxa(taxa, fee, montante) {
+  return (montante - Math.max(fee, 0)) * taxa;
 }

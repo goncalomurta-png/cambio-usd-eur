@@ -10,7 +10,7 @@ import datetime
 from pathlib import Path
 
 
-def fetch_frankfurter(days=50):
+def fetch_frankfurter(days=200):
     end = datetime.date.today()
     start = end - datetime.timedelta(days=days)
     url = f"https://api.frankfurter.dev/v2/rates?from={start}&to={end}&base=USD&quotes=EUR"
@@ -74,7 +74,7 @@ def main():
     print("A buscar dados de câmbio...")
     config = load_config()
 
-    rates = fetch_frankfurter(50)
+    rates = fetch_frankfurter(200)
     taxa_atual = rates[-1]["taxa"] if rates else None
     print(f"Taxa BCE actual: {taxa_atual}")
 
@@ -86,9 +86,21 @@ def main():
     )
     print(f"Wise ({amount_ref} USD): {wise}")
 
-    # Fórmula de fee calibrada: $1000->$9.87, $5000->$21.43
-    fee_fixo = 6.98
-    fee_variavel_pct = 0.289
+    # Recalibrar fórmula de fee a partir da resposta real da API
+    if wise and wise["fee_usd"] and wise["montante_ref"]:
+        # fee = fee_fixo + fee_var% * amount → resolução com 2 pontos conhecidos
+        # Ponto 1: $1000 → $9.87 (calibração inicial observada)
+        # Ponto 2: montante_ref → fee real obtida da API
+        fee_var = (wise["fee_usd"] - 9.87) / (wise["montante_ref"] - 1000) if wise["montante_ref"] != 1000 else 0.00289
+        fee_fixo = round(9.87 - fee_var * 1000, 4)
+        fee_variavel_pct = round(fee_var * 100, 4)
+    else:
+        fee_fixo = 6.98
+        fee_variavel_pct = 0.289
+
+    if not rates or taxa_atual is None:
+        print("ERRO CRÍTICO: sem dados de taxa. A abortar para não publicar JSON corrompido.")
+        import sys; sys.exit(1)
 
     output = {
         "updated": datetime.date.today().isoformat(),

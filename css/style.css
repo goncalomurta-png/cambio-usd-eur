@@ -79,13 +79,28 @@ main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem; }
 }
 #btn-analisar:hover { background: #3451d1; }
 
+.btn-secundario {
+  background: #f0f2f8;
+  color: #444;
+  border: 1px solid #d0d4e8;
+  padding: 0.72rem 1rem;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.btn-secundario:hover { background: #e2e6f5; }
+
 .status-dados {
   margin-top: 0.75rem;
   font-size: 0.82rem;
   color: #888;
 }
-.status-dados.ok  { color: #2d9f5e; }
-.status-dados.err { color: #d94f4f; }
+.status-dados.ok    { color: #2d9f5e; }
+.status-dados.err   { color: #d94f4f; }
+.status-dados.aviso { color: #e8a020; font-weight: 600; }
 
 /* ── Nav âncoras ── */
 #nav-relatorio {

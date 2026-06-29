@@ -7,8 +7,90 @@ function gerarRelatorio(r) {
   secTendencia(r);
   secJanelas(r);
   secBreakEven(r);
+  secDistribuicao(r);
   secMacro(r);
   secPlano(r);
+  guardarArquivo(r);
+  verificarAlerta();
+}
+
+// ── Distribuição de probabilidade da espera (N1) ──────────────
+function secDistribuicao(r) {
+  const el = document.getElementById('distribuicao');
+  if (!el) return;
+  if (!r.distEspera || !r.distEspera.length) {
+    el.innerHTML = '<h2>📊 Probabilidade de melhoria</h2><p style="color:#aaa">Dados insuficientes para calcular distribuição.</p>';
+    return;
+  }
+  const linhas = r.distEspera.map(d => `
+    <tr>
+      <td><strong>${d.dias} dias</strong></td>
+      <td>${d.prob05}%</td>
+      <td>${d.prob10}%</td>
+      <td style="color:#aaa;font-size:.82rem">±${d.sigTotal}%</td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <h2>📊 Probabilidade de melhoria de taxa</h2>
+    <p style="font-size:.8rem;color:#aaa;margin-bottom:.8rem">Com base na volatilidade diária recente (modelo log-normal) — distribuição estatística, não garantia</p>
+    <table class="tabela">
+      <tr><th>Horizonte</th><th>Prob. subida ≥ 0.5%</th><th>Prob. subida ≥ 1%</th><th>Desvio esperado</th></tr>
+      ${linhas}
+    </table>
+  `;
+}
+
+// ── Arquivo de relatórios (N2) ────────────────────────────────
+function guardarArquivo(r) {
+  try {
+    const arquivo = JSON.parse(localStorage.getItem('cambio_arquivo') || '[]');
+    arquivo.unshift({
+      ts: new Date().toISOString(),
+      montante: r.montante,
+      taxa: r.taxaAtual,
+      wise: r.wise.taxa,
+      eur: r.eurHoje,
+      decisao: r.recomendacao.decisao,
+      score: r.recomendacao.score,
+    });
+    localStorage.setItem('cambio_arquivo', JSON.stringify(arquivo.slice(0, 30)));
+  } catch {}
+}
+
+function mostrarArquivo() {
+  const arquivo = JSON.parse(localStorage.getItem('cambio_arquivo') || '[]');
+  if (!arquivo.length) { alert('Sem análises guardadas ainda.'); return; }
+  const linhas = arquivo.map(e => {
+    const data = new Date(e.ts).toLocaleDateString('pt-PT', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    return `${data} | $${e.montante.toLocaleString('pt-PT')} | BCE ${e.taxa} | Wise ${e.wise} | €${fmtEUR(e.eur)} | ${e.decisao} (${e.score})`;
+  }).join('\n');
+  alert('📋 Últimas análises:\n\n' + linhas);
+}
+
+// ── Alerta de taxa (N3) ───────────────────────────────────────
+function configurarAlerta() {
+  const taxa = parseFloat(prompt('Notificar quando taxa BCE atingir (EUR/USD):', '0.9200'));
+  if (!taxa || isNaN(taxa)) return;
+  localStorage.setItem('cambio_alerta_taxa', taxa);
+  alert(`✅ Alerta definido: notificação quando taxa ≥ ${taxa}`);
+  verificarAlerta(taxa);
+}
+
+function verificarAlerta(taxaMeta) {
+  if (!taxaMeta && !(taxaMeta = parseFloat(localStorage.getItem('cambio_alerta_taxa')))) return;
+  if (!dadosLatest) return;
+  if (dadosLatest.taxa_atual >= taxaMeta) {
+    if (Notification.permission === 'granted') {
+      new Notification('💱 Câmbio USD/EUR', {
+        body: `Taxa actual ${dadosLatest.taxa_atual} ≥ meta ${taxaMeta} — considera converter agora!`,
+        icon: 'favicon.ico',
+      });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') verificarAlerta(taxaMeta);
+      });
+    }
+  }
 }
 
 // ── Recomendação ──────────────────────────────────────────────
@@ -47,8 +129,8 @@ function secTecnicos(r) {
 
   // RSI
   if (rsi !== null) {
-    const cls   = rsi > 68 ? 'vender' : rsi < 32 ? 'comprar' : 'neutro';
-    const label = rsi > 68 ? 'Sobrecomprado' : rsi < 32 ? 'Sobrevendido' : 'Neutro';
+    const cls   = rsi > 70 ? 'vender' : rsi < 30 ? 'comprar' : 'neutro';
+    const label = rsi > 70 ? 'Sobrecomprado' : rsi < 30 ? 'Sobrevendido' : 'Neutro';
     sinais.push(`
       <div class="sinal-card ${cls}">
         <div class="s-nome">RSI (14)</div>
@@ -72,8 +154,8 @@ function secTecnicos(r) {
   // Bollinger
   if (bollinger) {
     const pos   = (bollinger.taxa - bollinger.inferior) / (bollinger.superior - bollinger.inferior);
-    const cls   = pos > 0.85 ? 'vender' : pos < 0.15 ? 'comprar' : 'neutro';
-    const label = pos > 0.85 ? 'Próx. banda sup.' : pos < 0.15 ? 'Próx. banda inf.' : 'Dentro das bandas';
+    const cls   = pos > 0.80 ? 'vender' : pos < 0.20 ? 'comprar' : 'neutro';
+    const label = pos > 0.80 ? 'Próx. banda sup.' : pos < 0.20 ? 'Próx. banda inf.' : 'Dentro das bandas';
     sinais.push(`
       <div class="sinal-card ${cls}">
         <div class="s-nome">Bollinger (20,2)</div>
@@ -155,7 +237,7 @@ function secJanelas(r) {
 
   document.getElementById('janelas').innerHTML = `
     <h2>📅 Janelas históricas — ${r.mesNome}</h2>
-    <p class="subtitle" style="font-size:.8rem;color:#aaa;margin-bottom:.9rem">Probabilidade de taxa no top 25% · dados BCE 2010-2024</p>
+    <p class="subtitle" style="font-size:.8rem;color:#aaa;margin-bottom:.9rem">Probabilidade histórica de taxa no top 25% · dados BCE 1999-2026 · padrão sazonal, não previsão</p>
     <div class="janelas-grid">${cards}</div>
   `;
 }
@@ -174,6 +256,7 @@ function secBreakEven(r) {
       <tr><td class="label">Melhoria necessária</td><td><strong>+${r.deltaPct.toFixed(3)}%</strong> (+${r.deltaNeeded.toFixed(5)} EUR/USD)</td></tr>
       <tr class="destaque"><td class="label">EUR a receber no break-even</td><td><strong>€${fmtEUR(eurMeta)}</strong></td></tr>
     </table>
+    <p style="font-size:.74rem;color:#bbb;margin-top:.6rem">Juro calculado em regime simples (não composto) · taxa Wise Assets Europe USD ${r.juroUSD.toFixed(2)}% APY vs EUR ${r.juroEUR.toFixed(2)}% APY · diferencial diário: ${((r.juroUSD - r.juroEUR) / 365).toFixed(4)}%/dia</p>
     ${r.proximaOtima ? `
     <div class="proxima-otima">
       ⭐ Próxima janela óptima: <strong>dias ${r.proximaOtima.janela}</strong>
@@ -218,12 +301,34 @@ function secPlano(r) {
 
   const stopLoss     = (r.wise.taxa * 0.997).toFixed(5);
   const metaConvert  = (r.wise.taxa * 1.003).toFixed(5);
-  const eurParcial50 = fmtEUR((r.montante / 2 - r.wise.fee / 2) * r.wise.taxa);
+
+  const p25  = r.montante * 0.25;
+  const p50  = r.montante * 0.50;
+  const p75  = r.montante * 0.75;
+  const eur25 = fmtEUR(eurAtaxa(r.wise.taxa, r.wise.fee * 0.25, p25));
+  const eur50 = fmtEUR(eurAtaxa(r.wise.taxa, r.wise.fee * 0.50, p50));
+  const eur75 = fmtEUR(eurAtaxa(r.wise.taxa, r.wise.fee * 0.75, p75));
+
+  const parciaisHTML = r.recomendacao.decisao === 'CONVERSÃO PARCIAL' ? `
+    <div class="parciais-grid" style="margin:.8rem 0;display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">
+      <div class="parcial-card" style="background:#f8f4e8;border-radius:8px;padding:.7rem;text-align:center">
+        <div style="font-size:.75rem;color:#888">25% ($${fmt(p25)})</div>
+        <div style="font-weight:700;font-size:1.05rem">€${eur25}</div>
+      </div>
+      <div class="parcial-card" style="background:#e8f4f8;border-radius:8px;padding:.7rem;text-align:center;border:2px solid #4a9aba">
+        <div style="font-size:.75rem;color:#888">50% ($${fmt(p50)}) ★</div>
+        <div style="font-weight:700;font-size:1.05rem">€${eur50}</div>
+      </div>
+      <div class="parcial-card" style="background:#f8f4e8;border-radius:8px;padding:.7rem;text-align:center">
+        <div style="font-size:.75rem;color:#888">75% ($${fmt(p75)})</div>
+        <div style="font-weight:700;font-size:1.05rem">€${eur75}</div>
+      </div>
+    </div>` : '';
 
   const acaoHoje = {
     'CONVERTER AGORA': `✅ Converter $${fmt(r.montante)} na Wise agora · recebes €${fmtEUR(r.eurHoje)}`,
     'AGUARDAR':        `⏳ Não converter — aguardar janela óptima`,
-    'CONVERSÃO PARCIAL': `⚖️ Converter 50% ($${fmt(r.montante / 2)}) hoje → €${eurParcial50} · manter o resto`,
+    'CONVERSÃO PARCIAL': `⚖️ Converter fracção agora · escolhe abaixo`,
   }[r.recomendacao.decisao];
 
   const itens = [];
@@ -249,6 +354,7 @@ function secPlano(r) {
 
   document.getElementById('plano').innerHTML = `
     <h2>📋 Plano de acção</h2>
+    ${parciaisHTML}
     <ul class="plano-lista">
       ${itens.map(i => `
         <li class="plano-item">
@@ -256,6 +362,7 @@ function secPlano(r) {
           <span>${i.acao}</span>
         </li>`).join('')}
     </ul>
+    <p style="font-size:.74rem;color:#bbb;margin-top:.7rem">⚠️ Análise baseada em padrões históricos BCE 1999-2026. Não constitui aconselhamento financeiro — taxas futuras são incertas.</p>
   `;
 }
 
