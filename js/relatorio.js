@@ -165,8 +165,19 @@ function secContexto(r) {
 // SECÇÃO 3 — NÚMEROS  (taxas + break-even + macro)
 // ═══════════════════════════════════════════════════════════════
 function secNumeros(r) {
-  // Break-even em linguagem simples
-  const breakEvenTexto = `Para compensar ${r.flexibilidade} dias de juro ganho em USD ($${r.ganhoJuro.toFixed(2)}), a taxa Wise precisa de subir <strong>+${r.deltaPct.toFixed(3)}%</strong> — de ${r.wise.taxa.toFixed(5)} para ${r.taxaBreakEven.toFixed(5)}.`;
+  // Tempo para recuperar a fee da Wise com juros simples
+  const feeUSD       = r.wise.fee;
+  const feeEUR       = feeUSD * r.wise.taxa;                          // aprox. custo em EUR
+  const diasRecUSD   = feeUSD > 0 ? Math.ceil(feeUSD / (r.montante * (r.juroUSD / 100) / 365)) : 0;
+  const eurRecebido  = r.eurHoje;
+  const diasRecEUR   = feeEUR > 0 ? Math.ceil(feeEUR / (eurRecebido * (r.juroEUR / 100) / 365)) : 0;
+
+  const feeTextoUSD = diasRecUSD > 0
+    ? `Se ficares em USD (${r.juroUSD.toFixed(2)}% APY): recuperas a fee em <strong>${diasRecUSD} dias</strong>.`
+    : '';
+  const feeTextoEUR = diasRecEUR > 0
+    ? `Se converteres para EUR (${r.juroEUR.toFixed(2)}% APY): recuperas a fee em <strong>${diasRecEUR} dias</strong>.`
+    : '';
 
   // Macro: máx 2 eventos, como pills
   const macroHTML = r.eventosMacro.length ? `
@@ -183,12 +194,13 @@ function secNumeros(r) {
       <table class="tabela">
         <tr><td class="label">Taxa BCE</td><td><strong>${r.taxaAtual.toFixed(5)}</strong></td></tr>
         <tr><td class="label">Taxa Wise</td><td><strong>${r.wise.taxa.toFixed(5)}</strong></td></tr>
-        <tr><td class="label">Fee Wise</td><td><strong>$${r.wise.fee.toFixed(2)}</strong></td></tr>
+        <tr><td class="label">Fee Wise</td><td><strong>$${feeUSD.toFixed(2)}</strong></td></tr>
         <tr class="destaque"><td class="label">Recebes hoje</td><td><strong>€${fmtEUR(r.eurHoje)}</strong></td></tr>
       </table>
       <div class="breakeven-bloco">
-        <p class="breakeven-texto">${breakEvenTexto}</p>
-        <p class="breakeven-sub">Juro simples · USD ${r.juroUSD.toFixed(2)}% APY vs EUR ${r.juroEUR.toFixed(2)}% APY · ${((r.juroUSD - r.juroEUR) / 365).toFixed(4)}%/dia</p>
+        <p class="breakeven-texto">${feeTextoUSD}</p>
+        <p class="breakeven-texto">${feeTextoEUR}</p>
+        <p class="breakeven-sub">Diferencial de juros: USD ${r.juroUSD.toFixed(2)}% APY vs EUR ${r.juroEUR.toFixed(2)}% APY</p>
         ${macroHTML}
       </div>
     </div>

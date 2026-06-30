@@ -102,8 +102,8 @@ function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
   const probAtual  = probJanelas[janela] || 0;
   const melhorEntry = Object.entries(probJanelas).sort((a, b) => b[1] - a[1])[0];
 
-  // Próxima janela óptima dentro da flexibilidade
-  const proximaOtima = encontrarProximaOtima(dia, hoje, probJanelas, probAtual, flexibilidade);
+  // Próxima janela óptima dentro da flexibilidade (usa dados de todos os meses)
+  const proximaOtima = encontrarProximaOtima(dia, hoje, historico.por_janela, probAtual, flexibilidade);
 
   // Cálculo Wise para o montante
   const eurHoje = wise.eur;
@@ -188,22 +188,29 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
   const razoes = [];
   const probMax = melhorEntry?.[1] || probAtual || 1;
 
-  // ── Janela histórica ───────────────────────────────────────────
+  // ── Fluxos mensais (ciclos empresariais históricos) ───────────
   if (proximaOtima && proximaOtima.dias <= flexibilidade) {
-    // Há janela melhor acessível → razão para esperar → SOBE score
+    // Janela claramente melhor acessível → esperar vale a pena → SOBE score
     const ganho    = proximaOtima.prob - probAtual;
     const urgencia = proximaOtima.dias <= 3 ? 1.6 : proximaOtima.dias <= 7 ? 1.2 : 1.0;
     const bonus    = Math.min(Math.round(ganho * urgencia), 40);
     score += bonus;
-    razoes.push(`Janela ${proximaOtima.janela} em ${proximaOtima.dias} dias tem ${proximaOtima.prob.toFixed(1)}% vs ${probAtual.toFixed(1)}% agora — vale esperar`);
-  } else if (probAtual / probMax >= 0.85) {
-    // Janela actual é a melhor → converter agora → DESCE score
-    score -= 20;
-    razoes.push(`Janela actual óptima (${probAtual.toFixed(1)}%) — melhor momento histórico para converter`);
+    const mesLabel = proximaOtima.mes ? ` (${proximaOtima.mes})` : '';
+    razoes.push(`Fluxos ${proximaOtima.janela}${mesLabel} em ${proximaOtima.dias}d: ${proximaOtima.prob.toFixed(1)}% vs ${probAtual.toFixed(1)}% agora — vale esperar`);
+  } else if (probAtual >= 30 && probAtual / probMax >= 0.85) {
+    // Mês forte E janela actual no pico → genuinamente bom momento → DESCE score
+    score -= 15;
+    razoes.push(`Fluxos mensais fortes (${probAtual.toFixed(1)}%) e sem janela melhor próxima — bom momento para converter`);
   } else {
-    // Janela fraca e sem alternativa melhor → ligeiro incentivo a converter
-    score -= Math.round((1 - probAtual / probMax) * 10);
-    razoes.push(`Janela actual fraca (${probAtual.toFixed(1)}%) sem alternativa melhor nos próximos ${flexibilidade} dias`);
+    // Mês fraco OU sem alternativa clara — sinal neutro
+    // Não penalizar "melhor dum mês mau"; mais flexibilidade = ligeiro bónus de paciência
+    const bonusFlexibilidade = Math.min(Math.floor(flexibilidade / 20) * 3, 6);
+    score += bonusFlexibilidade - 3; // pequena penalidade base compensada pela flexibilidade
+    if (probAtual >= 30) {
+      razoes.push(`Fluxos mensais moderados (${probAtual.toFixed(1)}%) — sem alternativa melhor nos próximos ${flexibilidade} dias`);
+    } else {
+      razoes.push(`Fluxos mensais fracos (${probAtual.toFixed(1)}%) — período sazonalmente desfavorável${bonusFlexibilidade > 0 ? `, mas tens ${flexibilidade} dias de margem` : ''}`);
+    }
   }
 
   // ── Tendência de preço ─────────────────────────────────────────
@@ -257,12 +264,6 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
   }
 
   score += Math.max(-20, Math.min(20, techScore));
-
-  // ── Break-even fácil ──────────────────────────────────────────
-  if (deltaPct < 0.05) {
-    score += 8;
-    razoes.push(`Break-even trivial: taxa só precisa de subir ${deltaPct.toFixed(3)}% para compensar`);
-  }
 
   // ── Decisão (zona PARCIAL alargada: 35-65) ────────────────────
   score = Math.max(0, Math.min(100, score));
@@ -401,28 +402,30 @@ function getJanela(dia) {
   return '26-31';
 }
 
-function encontrarProximaOtima(diaAtual, hoje, probJanelas, probAtual, maxDias) {
-  const janelas   = ['1-5', '6-10', '11-15', '16-20', '21-25', '26-31'];
-  const inicios   = [1, 6, 11, 16, 21, 26];
-  const idxAtual  = janelas.indexOf(getJanela(diaAtual));
+function encontrarProximaOtima(diaAtual, hoje, porJanela, probAtual, maxDias) {
+  const janelas = [
+    { nome: '1-5', inicio: 1 }, { nome: '6-10', inicio: 6 },
+    { nome: '11-15', inicio: 11 }, { nome: '16-20', inicio: 16 },
+    { nome: '21-25', inicio: 21 }, { nome: '26-31', inicio: 26 },
+  ];
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const limite = new Date(hoje);
+  limite.setDate(limite.getDate() + maxDias);
 
-  for (let i = 1; i < janelas.length * 2; i++) {
-    const idx     = (idxAtual + i) % janelas.length;
-    const janela  = janelas[idx];
-    const inicio  = inicios[idx];
-    const prob    = probJanelas[janela] || 0;
-    if (prob - probAtual < 3) continue; // diferença mínima de 3pp para valer a pena esperar
+  for (let mesesAFrente = 0; mesesAFrente <= 4; mesesAFrente++) {
+    const dataMes  = new Date(hoje.getFullYear(), hoje.getMonth() + mesesAFrente, 1);
+    const mesNome  = MESES[dataMes.getMonth()];
+    const probMes  = porJanela[mesNome] || {};
 
-    let data = new Date(hoje);
-    if (inicio > diaAtual) {
-      data.setDate(inicio);
-    } else {
-      data.setMonth(data.getMonth() + 1);
-      data.setDate(inicio);
+    for (const j of janelas) {
+      const dataInicio = new Date(dataMes.getFullYear(), dataMes.getMonth(), j.inicio);
+      if (dataInicio <= hoje) continue;     // já passou
+      if (dataInicio > limite) return null; // fora da flexibilidade
+      const prob = probMes[j.nome] || 0;
+      if (prob - probAtual < 3) continue;   // diferença mínima de 3pp para valer a pena
+      const dias = Math.round((dataInicio - hoje) / 86400000);
+      return { janela: j.nome, prob, dias, data: dataInicio, mes: mesNome };
     }
-    const dias = Math.round((data - hoje) / 86400000);
-    if (dias > maxDias) break;
-    return { janela, prob, dias, data };
   }
   return null;
 }
