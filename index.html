@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Câmbio USD → EUR · Análise Wise</title>
+  <title>Câmbio USD → EUR · Wise</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <header>
   <h1>💱 Câmbio USD → EUR</h1>
-  <p>Análise personalizada para conversão Wise · dados BCE em tempo real</p>
+  <p>Análise de conversão Wise com dados BCE em tempo real</p>
 </header>
 
 <main>
@@ -23,7 +23,7 @@
         <input type="number" id="montante" value="6600" min="100" step="100">
       </div>
       <div class="form-group">
-        <label for="flexibilidade">Flexibilidade (dias)</label>
+        <label for="flexibilidade">Posso esperar (dias)</label>
         <input type="number" id="flexibilidade" value="15" min="1" max="30">
       </div>
       <button id="btn-analisar" onclick="analisar()">Analisar →</button>
@@ -33,31 +33,18 @@
     <div id="status-dados" class="status-dados">A carregar dados…</div>
   </section>
 
-  <!-- ── Relatório (oculto até à primeira análise) ── -->
+  <!-- ── Relatório ── -->
   <div id="relatorio" style="display:none">
 
-    <!-- Navegação por âncoras -->
     <nav id="nav-relatorio">
-      <a href="#recomendacao">Recomendação</a>
-      <a href="#valores">Valores</a>
-      <a href="#tecnicos">Indicadores</a>
-      <a href="#tendencia">Tendência</a>
-      <a href="#janelas">Janelas</a>
-      <a href="#break-even">Break-even</a>
-      <a href="#distribuicao">Probabilidades</a>
-      <a href="#macro">Macro</a>
-      <a href="#plano">Plano</a>
+      <a href="#decisao">Decisão</a>
+      <a href="#contexto">Contexto</a>
+      <a href="#numeros">Números</a>
     </nav>
 
-    <section id="recomendacao"  class="card"></section>
-    <section id="valores"       class="card"></section>
-    <section id="tecnicos"      class="card"></section>
-    <section id="tendencia"     class="card"></section>
-    <section id="janelas"       class="card"></section>
-    <section id="break-even"    class="card"></section>
-    <section id="distribuicao"  class="card"></section>
-    <section id="macro"         class="card"></section>
-    <section id="plano"         class="card"></section>
+    <section id="decisao"  class="card"></section>
+    <section id="contexto" class="card"></section>
+    <section id="numeros"  class="card"></section>
 
   </div>
 
