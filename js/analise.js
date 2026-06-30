@@ -44,7 +44,7 @@ async function analisar() {
     const resultado = calcularAnalise(montante, flexibilidade, wise, dadosLatest, dadosHistorico);
     gerarRelatorio(resultado);
     document.getElementById('relatorio').style.display = 'block';
-    document.getElementById('recomendacao').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('decisao').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     alert('Erro na análise: ' + e.message);
   }
