@@ -275,6 +275,7 @@ main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem; }
 .flux-bar.fb-bom    { background: #c5cef7; }
 .flux-bar.fb-fraco  { background: #e8e8e8; }
 .flux-dia { font-size: 0.62rem; color: #bbb; margin-top: 2px; }
+.flux-mes { font-size: 0.6rem; color: #4361ee; font-weight: 700; margin-bottom: 2px; }
 
 .flux-texto { font-size: 0.8rem; color: #444; line-height: 1.5; margin-bottom: 0.4rem; }
 .flux-nota  { font-size: 0.7rem; color: #bbb; line-height: 1.4; }

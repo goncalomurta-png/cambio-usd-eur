@@ -137,7 +137,7 @@ function calcularAnalise(montante, flexibilidade, wise, latest, historico) {
     taxaAtual, wise, eurHoje, feeHoje,
     ma7, ma20, ma50, tendencia, forcaTendencia, volPct,
     rsi, macd, bollinger,
-    janela, probAtual, probJanelas, melhorEntry, proximaOtima,
+    janela, probAtual, probJanelas, porJanela: historico.por_janela, melhorEntry, proximaOtima,
     ganhoJuro, taxaBreakEven, deltaNeeded, deltaPct,
     eventosMacro, distEspera,
     juroUSD: juroUSD * 100, juroEUR: juroEUR * 100,

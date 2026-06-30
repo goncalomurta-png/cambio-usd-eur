@@ -102,26 +102,46 @@ function secContexto(r) {
   const bollLabel = bollPos > 0.80 ? ' · Bollinger banda sup.' : bollPos < 0.20 ? ' · Bollinger banda inf.' : ' · Bollinger central';
   const techSinal = rsiLabel + macdLabel + bollLabel;
 
-  // Fluxos mensais — mini barras
-  const janelas = ['1-5', '6-10', '11-15', '16-20', '21-25', '26-31'];
-  const probs   = janelas.map(j => r.probJanelas[j] || 0);
-  const maxProb = Math.max(...probs, 1);
-  const fluxoBars = janelas.map((j, idx) => {
-    const prob    = probs[idx];
-    const isAtual = j === r.janela;
-    const isOtima = r.proximaOtima?.janela === j;
-    const barH    = Math.round((prob / maxProb) * 40 + 4);
-    const cls     = isAtual ? 'fb-atual' : isOtima ? 'fb-otima' : prob >= 30 ? 'fb-bom' : 'fb-fraco';
+  // Janelas futuras (a partir de hoje, multi-mês)
+  const JANELAS_DEF = [
+    {nome:'1-5', inicio:1, fim:5}, {nome:'6-10', inicio:6, fim:10},
+    {nome:'11-15', inicio:11, fim:15}, {nome:'16-20', inicio:16, fim:20},
+    {nome:'21-25', inicio:21, fim:25}, {nome:'26-31', inicio:26, fim:31},
+  ];
+  const MESES_NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const proximasJanelas = [];
+  for (let m = 0; m <= 3 && proximasJanelas.length < 8; m++) {
+    const dataMes = new Date(r.hoje.getFullYear(), r.hoje.getMonth() + m, 1);
+    const mesNome = MESES_NOMES[dataMes.getMonth()];
+    const probMes = r.porJanela[mesNome] || {};
+    for (const j of JANELAS_DEF) {
+      if (proximasJanelas.length >= 8) break;
+      const dataFim = new Date(dataMes.getFullYear(), dataMes.getMonth(), j.fim + 1);
+      if (dataFim <= r.hoje) continue; // janela já terminou
+      const dataInicio = new Date(dataMes.getFullYear(), dataMes.getMonth(), j.inicio);
+      const isAtual  = dataInicio <= r.hoje;
+      const isOtima  = r.proximaOtima?.janela === j.nome && r.proximaOtima?.mes === mesNome;
+      const prob     = probMes[j.nome] || 0;
+      proximasJanelas.push({ janela: j.nome, mes: mesNome, prob, isAtual, isOtima, dataInicio });
+    }
+  }
+  const maxProb = Math.max(...proximasJanelas.map(j => j.prob), 1);
+  const fluxoBars = proximasJanelas.map(({ janela, mes, prob, isAtual, isOtima, dataInicio }) => {
+    const barH = Math.round((prob / maxProb) * 40 + 4);
+    const cls  = isAtual ? 'fb-atual' : isOtima ? 'fb-otima' : prob >= 30 ? 'fb-bom' : 'fb-fraco';
+    const labelMes = dataInicio.getMonth() !== r.hoje.getMonth()
+      ? `<div class="flux-mes">${mes}</div>` : '';
     return `
-      <div class="flux-col" title="Dias ${j}: ${prob.toFixed(1)}%${isAtual ? ' (hoje)' : ''}${isOtima ? ' (melhor)' : ''}">
+      <div class="flux-col" title="${mes} dias ${janela}: ${prob.toFixed(1)}%${isAtual ? ' (agora)' : ''}${isOtima ? ' ★ melhor' : ''}">
+        ${labelMes}
         <div class="flux-bar ${cls}" style="height:${barH}px"></div>
-        <div class="flux-dia">${j.split('-')[0]}</div>
+        <div class="flux-dia">${janela.split('-')[0]}</div>
       </div>`;
   }).join('');
 
   const fluxoTexto = r.proximaOtima
-    ? `Hoje: dias ${r.janela} · ${(r.probJanelas[r.janela] || 0).toFixed(1)}% &nbsp;→&nbsp; Melhor: dias ${r.proximaOtima.janela} em ${r.proximaOtima.dias} dias · ${r.proximaOtima.prob.toFixed(1)}%`
-    : `Hoje: dias ${r.janela} · ${(r.probJanelas[r.janela] || 0).toFixed(1)}% — sem janela significativamente melhor nos próximos ${r.flexibilidade} dias`;
+    ? `Agora: ${r.janela} ${r.mesNome} · ${r.probAtual.toFixed(1)}% &nbsp;→&nbsp; Melhor: ${r.proximaOtima.janela} ${r.proximaOtima.mes} em ${r.proximaOtima.dias}d · ${r.proximaOtima.prob.toFixed(1)}%`
+    : `Agora: ${r.janela} ${r.mesNome} · ${r.probAtual.toFixed(1)}% — sem janela significativamente melhor nos próximos ${r.flexibilidade} dias`;
 
   document.getElementById('contexto').innerHTML = `
     <div class="contexto-grid">
@@ -148,9 +168,9 @@ function secContexto(r) {
       </div>
 
       <div class="ctx-dir">
-        <div class="flux-titulo">Fluxos mensais — ${r.mesNome}</div>
+        <div class="flux-titulo">Próximas janelas de conversão</div>
         <div class="flux-legend">
-          <span class="fl-item"><span class="fl-dot fb-atual"></span>Hoje</span>
+          <span class="fl-item"><span class="fl-dot fb-atual"></span>Agora</span>
           ${r.proximaOtima ? `<span class="fl-item"><span class="fl-dot fb-otima"></span>Melhor</span>` : ''}
         </div>
         <div class="flux-bars">${fluxoBars}</div>
