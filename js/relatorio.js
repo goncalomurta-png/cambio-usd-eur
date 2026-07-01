@@ -81,19 +81,14 @@ function secDecisao(r) {
 // SECÇÃO 2 — CONTEXTO  (mercado + fluxos mensais)
 // ═══════════════════════════════════════════════════════════════
 function secContexto(r) {
-  // Sparkline 30 dias
+  // Sparkline 30 dias + cone de volatilidade 7 dias
   const hist  = r.historico;
   const taxas = hist.map(d => d.taxa);
-  const min   = Math.min(...taxas), max = Math.max(...taxas);
-  const range = max - min || 0.001;
   const slice = hist.slice(-30);
-  const bars  = slice.map((d, i) => {
-    const h = Math.round(((d.taxa - min) / range) * 48 + 6);
-    return `<div class="s-bar${i === slice.length - 1 ? ' hoje' : ''}" style="height:${h}px" title="${d.data}: ${d.taxa}"></div>`;
-  }).join('');
   const var30 = taxas.length >= 30
     ? ((taxas[taxas.length - 1] - taxas[taxas.length - 30]) / taxas[taxas.length - 30] * 100)
     : 0;
+  const sparklineSVG = buildSparklineCone(slice.map(d => d.taxa), r.taxaAtual, r.volPct, slice[0]?.data);
 
   // Sinal técnico resumido (1 linha)
   const rsiLabel  = !r.rsi ? '—' : r.rsi > 70 ? `RSI ${r.rsi.toFixed(0)} sobrecomprado ↓` : r.rsi < 30 ? `RSI ${r.rsi.toFixed(0)} sobrevendido ↑` : `RSI ${r.rsi.toFixed(0)} neutro`;
@@ -160,9 +155,10 @@ function secContexto(r) {
             <span class="ctx-val">${r.volPct.toFixed(2)}%</span>
           </div>
         </div>
-        <div class="sparkline">${bars}</div>
+        ${sparklineSVG}
         <div class="sparkline-footer">
-          <span>${slice[0]?.data || ''}</span><span>Hoje (${r.taxaAtual.toFixed(4)})</span>
+          <span>${slice[0]?.data || ''}</span>
+          <span>Hoje · +7d ±σ</span>
         </div>
         <p class="tech-sinal">${techSinal}</p>
       </div>
@@ -278,6 +274,62 @@ function verificarAlerta(taxaMeta) {
       Notification.requestPermission().then(p => { if (p === 'granted') verificarAlerta(taxaMeta); });
     }
   }
+}
+
+// ── Sparkline com cone de volatilidade ────────────────────────
+function buildSparklineCone(taxas, taxaAtual, volPct, dataInicio) {
+  const W = 300, H = 66, PAD = 4;
+  const n = taxas.length;
+
+  // 1σ diária absoluta → projecto √7 dias (random walk)
+  const vol1d  = taxaAtual * (volPct / 100);
+  const sig1_7 = vol1d * Math.sqrt(7);
+  const sig2_7 = vol1d * 2 * Math.sqrt(7);
+
+  // Escala Y: inclui o cone para não cortar
+  const allV = [...taxas, taxaAtual + sig2_7, taxaAtual - sig2_7];
+  const minV = Math.min(...allV), maxV = Math.max(...allV);
+  const rng  = maxV - minV || 0.001;
+  const toY  = v => +(PAD + (H - 2 * PAD) * (1 - (v - minV) / rng)).toFixed(1);
+
+  // X: histórico ocupa 74% da largura, cone os restantes 26%
+  const histW = Math.round(W * 0.74);
+  const endX  = W - PAD;
+  const toXh  = i => +(PAD + (histW - 2 * PAD) * (i / Math.max(n - 1, 1))).toFixed(1);
+
+  const todayX = histW;
+  const todayY = toY(taxaAtual);
+
+  const pts  = taxas.map((v, i) => `${toXh(i)},${toY(v)}`).join(' ');
+  const y1hi = toY(taxaAtual + sig1_7);
+  const y1lo = toY(taxaAtual - sig1_7);
+  const y2hi = toY(taxaAtual + sig2_7);
+  const y2lo = toY(taxaAtual - sig2_7);
+
+  // Posições dos labels ±σ (evitar sobreposição)
+  const lbl2Y = Math.max(y2hi - 2, 9);
+  const lbl1Y = Math.max(y1hi - 2, lbl2Y + 10);
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+    style="width:100%;height:${H}px;display:block;border-radius:8px;background:#f8f9fb">
+    <!-- divisor hoje -->
+    <line x1="${todayX}" y1="2" x2="${todayX}" y2="${H-2}"
+      stroke="#d0d4e8" stroke-width="1" stroke-dasharray="3,2"/>
+    <!-- cone 2σ -->
+    <polygon points="${todayX},${todayY} ${endX},${y2hi} ${endX},${y2lo}"
+      fill="#dde5ff" opacity="0.6"/>
+    <!-- cone 1σ -->
+    <polygon points="${todayX},${todayY} ${endX},${y1hi} ${endX},${y1lo}"
+      fill="#a8bcf5" opacity="0.55"/>
+    <!-- linha histórica -->
+    <polyline points="${pts}" fill="none" stroke="#8899dd"
+      stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- ponto hoje -->
+    <circle cx="${todayX}" cy="${todayY}" r="3.5" fill="#4361ee"/>
+    <!-- labels σ -->
+    <text x="${endX-2}" y="${lbl2Y}" text-anchor="end" font-size="7.5" fill="#8899cc">±2σ</text>
+    <text x="${endX-2}" y="${lbl1Y}" text-anchor="end" font-size="7.5" fill="#4361ee">±1σ</text>
+  </svg>`;
 }
 
 // ── Utilitários ───────────────────────────────────────────────
