@@ -252,13 +252,13 @@ function calcularRecomendacao({ tendencia, forcaTendencia, probAtual, probJanela
     // Janela claramente melhor acessível → esperar vale a pena → SOBE score
     const ganho    = proximaOtima.prob - probAtual;
     const urgencia = proximaOtima.dias <= 3 ? 1.6 : proximaOtima.dias <= 7 ? 1.2 : 1.0;
-    const bonus    = Math.min(Math.round(ganho * urgencia), 40);
+    const bonus    = Math.min(Math.round(ganho * urgencia), 15); // backtesting: fluxos têm poder preditivo fraco
     score += bonus;
     const mesLabel = proximaOtima.mes ? ` (${proximaOtima.mes})` : '';
     razoes.push(`Fluxos ${proximaOtima.janela}${mesLabel} em ${proximaOtima.dias}d: ${proximaOtima.prob.toFixed(1)}% vs ${probAtual.toFixed(1)}% agora — vale esperar`);
   } else if (probAtual >= 30 && probAtual / probMax >= 0.85) {
     // Mês forte E janela actual no pico → genuinamente bom momento → DESCE score
-    score -= 15;
+    score -= 8;
     razoes.push(`Fluxos mensais fortes (${probAtual.toFixed(1)}%) e sem janela melhor próxima — bom momento para converter`);
   } else {
     // Mês fraco OU sem alternativa clara — sinal neutro

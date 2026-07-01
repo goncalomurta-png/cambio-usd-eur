@@ -89,9 +89,9 @@ def calcular_score(taxas, taxa_atual, por_janela, hoje_date, flexibilidade=15):
     if proxima and proxima['dias'] <= flexibilidade:
         ganho   = proxima['prob'] - prob_atual
         urg     = 1.6 if proxima['dias'] <= 3 else 1.2 if proxima['dias'] <= 7 else 1.0
-        score  += min(round(ganho * urg), 40)
+        score  += min(round(ganho * urg), 15)  # backtesting: fluxos têm poder preditivo fraco
     elif prob_atual >= 30 and prob_max > 0 and prob_atual / prob_max >= 0.85:
-        score  -= 15
+        score  -= 8
     else:
         bonus   = min((flexibilidade // 20) * 3, 6)
         score  += bonus - 3

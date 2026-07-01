@@ -95,7 +95,13 @@ function secContexto(r) {
   const macdLabel = !r.macd ? '' : r.macd.sinalCruz === 'alta' ? ' · MACD cruzamento ↑' : r.macd.sinalCruz === 'baixa' ? ' · MACD cruzamento ↓' : ` · MACD ${r.macd.histograma > 0 ? 'positivo' : 'negativo'}`;
   const bollPos   = r.bollinger ? (r.bollinger.taxa - r.bollinger.inferior) / (r.bollinger.superior - r.bollinger.inferior) : 0.5;
   const bollLabel = bollPos > 0.80 ? ' · Bollinger banda sup.' : bollPos < 0.20 ? ' · Bollinger banda inf.' : ' · Bollinger central';
-  const techSinal = rsiLabel + macdLabel + bollLabel;
+  const difJuro   = r.juroUSD - r.juroEUR;
+  const juroLabel = difJuro > 0.5
+    ? ` · Spread juros +${difJuro.toFixed(2)}%/ano → favorece USD`
+    : difJuro < -0.5
+    ? ` · Spread juros ${difJuro.toFixed(2)}%/ano → favorece EUR`
+    : ` · Spread juros próximo de zero`;
+  const techSinal = rsiLabel + macdLabel + bollLabel + juroLabel;
 
   // Janelas futuras (a partir de hoje, multi-mês)
   const JANELAS_DEF = [
@@ -282,7 +288,7 @@ function buildSparklineCone(taxas, taxaAtual, volPct, dataInicio) {
   const n = taxas.length;
 
   // 1σ diária absoluta → projecto √7 dias (random walk)
-  const vol1d  = taxaAtual * (volPct / 100);
+  const vol1d  = taxaAtual * (volPct / 100) * 1.4; // backtesting: EUR/USD tem caudas mais pesadas que normal
   const sig1_7 = vol1d * Math.sqrt(7);
   const sig2_7 = vol1d * 2 * Math.sqrt(7);
 
