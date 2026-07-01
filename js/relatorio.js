@@ -147,24 +147,14 @@ function secContexto(r) {
   document.getElementById('contexto').innerHTML = `
     <div class="contexto-grid">
       <div class="ctx-esq">
-        <div class="ctx-metricas">
-          <div class="ctx-m">
-            <span class="ctx-label">Taxa BCE</span>
-            <span class="ctx-val">${r.taxaAtual.toFixed(5)}</span>
-          </div>
-          <div class="ctx-m">
-            <span class="ctx-label">30 dias</span>
-            <span class="ctx-val ${var30 >= 0 ? 'pos' : 'neg'}">${var30 >= 0 ? '+' : ''}${var30.toFixed(2)}%</span>
-          </div>
-          <div class="ctx-m">
-            <span class="ctx-label">Volatilidade</span>
-            <span class="ctx-val">${r.volPct.toFixed(2)}%</span>
-          </div>
+        <div class="ctx-titulo-bloco">
+          <span class="flux-titulo">Taxa BCE — últimos 30 dias</span>
+          <span class="ctx-hoje-valor">${r.taxaAtual.toFixed(5)} <span class="${var30 >= 0 ? 'pos' : 'neg'}">${var30 >= 0 ? '▲' : '▼'}${Math.abs(var30).toFixed(2)}%</span></span>
         </div>
         ${sparklineSVG}
         <div class="sparkline-footer">
           <span>${slice[0]?.data || ''}</span>
-          <span>Hoje · +7d ±σ</span>
+          <span>Hoje · cone ±σ 7d · vol ${r.volPct.toFixed(2)}%</span>
         </div>
         <p class="tech-sinal">${techSinal}</p>
       </div>
