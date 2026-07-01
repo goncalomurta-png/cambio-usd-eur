@@ -84,14 +84,31 @@ main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem; }
 }
 .btn-secundario:hover { background: #e2e6f5; }
 
-.status-dados {
+.status-row {
   margin-top: 0.75rem;
-  font-size: 0.82rem;
-  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
+.status-dados { font-size: 0.82rem; color: #888; }
 .status-dados.ok    { color: #2d9f5e; }
 .status-dados.err   { color: #d94f4f; }
 .status-dados.aviso { color: #e8a020; font-weight: 600; }
+
+.acuidade-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.acuidade-badge.verde    { background: #d4f1e3; color: #1b6e3a; }
+.acuidade-badge.amarelo  { background: #fff3cd; color: #7c5a00; }
+.acuidade-badge.vermelho { background: #fdecea; color: #b00020; }
+.acuidade-badge.cinza    { background: #f0f0f0; color: #888; }
+
+.btn-converti { border-color: #2d9f5e; color: #1b6e3a; }
 
 /* ── Nav ── */
 #nav-relatorio {

@@ -21,6 +21,19 @@ async function carregarDados() {
       el.className  = 'status-dados ok';
       el.textContent = `✓ Dados de ${latest.updated} · BCE: 1 USD = ${latest.taxa_atual} EUR · Wise: ${latest.wise_taxa} EUR`;
     }
+    // Badge de acuidade (se disponível no JSON)
+    const acBadge = document.getElementById('acuidade-badge');
+    if (acBadge && latest.acuidade) {
+      acBadge.style.display = '';
+      const s = latest.acuidade.semana, m = latest.acuidade.mes;
+      const pct = s?.pct ?? m?.pct ?? null;
+      const cor = pct === null ? 'cinza' : pct >= 0.70 ? 'verde' : pct >= 0.50 ? 'amarelo' : 'vermelho';
+      const semLabel = s?.n > 0 ? `Semana ${s.corretos}/${s.n}` : '—';
+      const mesLabel = m?.n > 0 ? ` · Mês ${m.corretos}/${m.n}` : '';
+      acBadge.className = `acuidade-badge ${cor}`;
+      acBadge.textContent = `📊 ${semLabel}${mesLabel}`;
+      acBadge.title = 'Acuidade das previsões de taxa a 7 dias (AGUARDAR/CONVERTER vs. o que aconteceu)';
+    }
     document.getElementById('ultima-actualizacao').textContent = latest.updated;
   } catch {
     el.className  = 'status-dados err';
@@ -42,12 +55,58 @@ async function analisar() {
 
   try {
     const resultado = calcularAnalise(montante, flexibilidade, wise, dadosLatest, dadosHistorico);
+    window._ultimaRecomendacao = resultado.recomendacao;
     gerarRelatorio(resultado);
     document.getElementById('relatorio').style.display = 'block';
     document.getElementById('decisao')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     alert('Erro na análise: ' + e.message);
   }
+}
+
+// ── Registo manual de transferências ──────────────────────────
+function registarTransferencia() {
+  if (!dadosLatest) return;
+  const rec = window._ultimaRecomendacao;
+  const montante = parseFloat(document.getElementById('montante').value) || 0;
+  const taxa = dadosLatest.wise_taxa;
+  const fee  = dadosLatest.wise_fee_fixo + (dadosLatest.wise_fee_variavel_pct / 100) * montante;
+  const eur  = (montante - Math.max(fee, 0)) * taxa;
+
+  const entrada = {
+    data:          new Date().toISOString().slice(0, 10),
+    montante_usd:  montante,
+    taxa_wise:     taxa,
+    taxa_bce:      dadosLatest.taxa_atual,
+    eur_recebido:  Math.round(eur * 100) / 100,
+    fee_usd:       Math.round(fee * 100) / 100,
+    score_tool:    rec?.score ?? dadosLatest.score_hoje,
+    decisao_tool:  rec?.decisao ?? dadosLatest.decisao_hoje,
+  };
+
+  const historico = JSON.parse(localStorage.getItem('cambio_transferencias') || '[]');
+  historico.unshift(entrada);
+  localStorage.setItem('cambio_transferencias', JSON.stringify(historico.slice(0, 24)));
+  alert(`✅ Transferência registada!\n$${montante.toLocaleString('pt-PT')} → €${eur.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2})} à taxa ${taxa}`);
+}
+
+function mostrarComparacoes() {
+  const historico = JSON.parse(localStorage.getItem('cambio_transferencias') || '[]');
+  if (!historico.length) { alert('Sem transferências registadas ainda.\nUsa o botão "Converti" após a análise.'); return; }
+  const taxaHoje = dadosLatest?.taxa_atual;
+  const linhas = historico.map(e => {
+    const diasAtras = Math.round((Date.now() - new Date(e.data + 'T12:00:00Z')) / 86400000);
+    let comp = '';
+    if (taxaHoje && diasAtras >= 1) {
+      const diffPct = ((taxaHoje - e.taxa_bce) / e.taxa_bce * 100);
+      const eurHoje = (e.montante_usd - e.fee_usd) * taxaHoje;
+      const diffEur = Math.round((eurHoje - e.eur_recebido) * 100) / 100;
+      const sinal = diffEur >= 0 ? `+€${Math.abs(diffEur).toFixed(2)} se esperasses` : `-€${Math.abs(diffEur).toFixed(2)} (converteste melhor)`;
+      comp = ` | Hoje: ${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(2)}% (${sinal})`;
+    }
+    return `${e.data} | $${e.montante_usd.toLocaleString('pt-PT')} → €${e.eur_recebido.toLocaleString('pt-PT', {minimumFractionDigits:2})} | Tool: ${e.decisao_tool} (${e.score_tool})${comp}`;
+  }).join('\n');
+  alert('📤 Transferências registadas:\n\n' + linhas);
 }
 
 // ── Estimativa Wise a partir dos dados guardados ───────────────
