@@ -6,5 +6,13 @@
     "decisao": "PARCIAL",
     "taxa_7d": null,
     "correto_7d": null
+  },
+  {
+    "data": "2026-07-02",
+    "taxa": 0.8767,
+    "score": 56,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
   }
 ]
