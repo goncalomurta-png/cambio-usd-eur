@@ -22,5 +22,13 @@
     "decisao": "AGUARDAR",
     "taxa_7d": null,
     "correto_7d": null
+  },
+  {
+    "data": "2026-07-06",
+    "taxa": 0.87369,
+    "score": 47,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
   }
 ]
