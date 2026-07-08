@@ -4,7 +4,7 @@
     "taxa": 0.87656,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.87452,
     "correto_7d": null
   },
   {
@@ -34,6 +34,14 @@
   {
     "data": "2026-07-07",
     "taxa": 0.87451,
+    "score": 47,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-07-08",
+    "taxa": 0.87452,
     "score": 47,
     "decisao": "PARCIAL",
     "taxa_7d": null,
