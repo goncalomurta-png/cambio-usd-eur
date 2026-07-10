@@ -4,7 +4,7 @@
     "taxa": 0.87656,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87469,
+    "taxa_7d": 0.87467,
     "correto_7d": null
   },
   {
@@ -12,7 +12,7 @@
     "taxa": 0.8767,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87514,
+    "taxa_7d": 0.875,
     "correto_7d": null
   },
   {
@@ -20,8 +20,8 @@
     "taxa": 0.87426,
     "score": 68,
     "decisao": "AGUARDAR",
-    "taxa_7d": null,
-    "correto_7d": null
+    "taxa_7d": 0.87387,
+    "correto_7d": false
   },
   {
     "data": "2026-07-06",
@@ -50,6 +50,14 @@
   {
     "data": "2026-07-09",
     "taxa": 0.87514,
+    "score": 47,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-07-10",
+    "taxa": 0.87387,
     "score": 47,
     "decisao": "PARCIAL",
     "taxa_7d": null,
