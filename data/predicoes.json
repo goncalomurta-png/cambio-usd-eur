@@ -12,7 +12,7 @@
     "taxa": 0.8767,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.875,
+    "taxa_7d": 0.87498,
     "correto_7d": null
   },
   {
@@ -28,7 +28,7 @@
     "taxa": 0.87369,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.875,
     "correto_7d": null
   },
   {
@@ -58,6 +58,14 @@
   {
     "data": "2026-07-10",
     "taxa": 0.87387,
+    "score": 47,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-07-13",
+    "taxa": 0.875,
     "score": 47,
     "decisao": "PARCIAL",
     "taxa_7d": null,
