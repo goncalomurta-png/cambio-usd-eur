@@ -4,7 +4,7 @@
     "taxa": 0.87656,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87471,
+    "taxa_7d": 0.87472,
     "correto_7d": null
   },
   {
@@ -68,7 +68,7 @@
     "taxa": 0.875,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87396,
+    "taxa_7d": 0.87399,
     "correto_7d": null
   },
   {
@@ -76,7 +76,7 @@
     "taxa": 0.87529,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87427,
+    "taxa_7d": 0.87432,
     "correto_7d": null
   },
   {
@@ -84,7 +84,7 @@
     "taxa": 0.87502,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87515,
+    "taxa_7d": 0.87519,
     "correto_7d": null
   },
   {
@@ -116,7 +116,7 @@
     "taxa": 0.87398,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.87773,
     "correto_7d": null
   },
   {
@@ -146,6 +146,14 @@
   {
     "data": "2026-07-27",
     "taxa": 0.87701,
+    "score": 66,
+    "decisao": "AGUARDAR",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-07-28",
+    "taxa": 0.87773,
     "score": 66,
     "decisao": "AGUARDAR",
     "taxa_7d": null,
