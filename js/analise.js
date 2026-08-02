@@ -13,7 +13,7 @@ async function carregarDados() {
     ]);
     dadosLatest   = latest;
     dadosHistorico = historico;
-    const diasAtraso = Math.floor((Date.now() - new Date(latest.updated + 'T00:00:00Z')) / 86400000);
+    const diasAtraso = diasUteisAtraso(new Date(latest.updated + 'T00:00:00Z'), new Date());
     if (diasAtraso > 1) {
       el.className  = 'status-dados aviso';
       el.textContent = `⚠️ Dados com ${diasAtraso} dias de atraso (${latest.updated}) — GitHub Action pode não ter corrido`;
@@ -39,6 +39,21 @@ async function carregarDados() {
     el.className  = 'status-dados err';
     el.textContent = '⚠️ Erro ao carregar dados. Confirma que o GitHub Action correu pelo menos uma vez.';
   }
+}
+
+// Conta apenas dias úteis (sáb/dom não contam) entre duas datas — evita falso aviso de atraso ao acessar num fim-de-semana
+function diasUteisAtraso(dataInicio, dataFim) {
+  let dias = 0;
+  const cursor = new Date(dataInicio);
+  cursor.setUTCHours(0, 0, 0, 0);
+  const fim = new Date(dataFim);
+  fim.setUTCHours(0, 0, 0, 0);
+  while (cursor < fim) {
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    const diaSemana = cursor.getUTCDay(); // 0=domingo, 6=sábado
+    if (diaSemana !== 0 && diaSemana !== 6) dias++;
+  }
+  return dias;
 }
 
 // ── Ponto de entrada ───────────────────────────────────────────
@@ -94,12 +109,14 @@ function mostrarComparacoes() {
   const historico = JSON.parse(localStorage.getItem('cambio_transferencias') || '[]');
   if (!historico.length) { alert('Sem transferências registadas ainda.\nUsa o botão "Converti" após a análise.'); return; }
   const taxaHoje = dadosLatest?.taxa_atual;
+  const wiseTaxaHoje = dadosLatest?.wise_taxa;
   const linhas = historico.map(e => {
     const diasAtras = Math.round((Date.now() - new Date(e.data + 'T12:00:00Z')) / 86400000);
     let comp = '';
-    if (taxaHoje && diasAtras >= 1) {
+    if (taxaHoje && wiseTaxaHoje && diasAtras >= 1) {
       const diffPct = ((taxaHoje - e.taxa_bce) / e.taxa_bce * 100);
-      const eurHoje = (e.montante_usd - e.fee_usd) * taxaHoje;
+      // Comparação Wise↔Wise: o hipotético "hoje" tem de usar a mesma referência (Wise) que o valor real recebido
+      const eurHoje = (e.montante_usd - e.fee_usd) * wiseTaxaHoje;
       const diffEur = Math.round((eurHoje - e.eur_recebido) * 100) / 100;
       const sinal = diffEur >= 0 ? `+€${Math.abs(diffEur).toFixed(2)} se esperasses` : `-€${Math.abs(diffEur).toFixed(2)} (converteste melhor)`;
       comp = ` | Hoje: ${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(2)}% (${sinal})`;
@@ -218,10 +235,11 @@ function calcularDistribuicaoEspera(taxas, taxaAtual, maxDias) {
   const horizontes = [5, 10, 15, maxDias].filter((v, i, a) => a.indexOf(v) === i && v <= maxDias + 5);
   return horizontes.map(dias => {
     const muTotal  = mu * dias;
-    const sigTotal = sig * Math.sqrt(dias);
-    // Prob de taxa subir pelo menos 0.5%
-    const z05  = (-0.005 - muTotal) / sigTotal;
-    const z10  = (-0.010 - muTotal) / sigTotal;
+    // Mesmo factor de caudas pesadas usado no cone de volatilidade (buildSparklineCone) — consistência de modelo de risco para o mesmo par
+    const sigTotal = sig * 1.4 * Math.sqrt(dias);
+    // Prob de taxa subir pelo menos 0.5% / 1%
+    const z05  = (0.005 - muTotal) / sigTotal;
+    const z10  = (0.010 - muTotal) / sigTotal;
     const prob05 = Math.round((1 - normCDF(z05)) * 100);
     const prob10 = Math.round((1 - normCDF(z10)) * 100);
     return { dias, prob05, prob10, sigTotal: (sigTotal * 100).toFixed(2) };

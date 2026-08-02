@@ -201,6 +201,16 @@ function secNumeros(r) {
       }).join('')}
     </div>` : '';
 
+  // Distribuição de probabilidade da espera (estimativa estatística, não previsão)
+  const distEsperaHTML = (r.distEspera && r.distEspera.length) ? `
+    <div class="dist-espera-bloco">
+      <p class="dist-espera-titulo">Se esperares... (estimativa estatística, baseada na volatilidade histórica — não é previsão)</p>
+      <table class="tabela dist-espera-tabela">
+        <tr><td class="label">Horizonte</td><td>P(subir ≥0.5%)</td><td>P(subir ≥1%)</td></tr>
+        ${r.distEspera.map(d => `<tr><td class="label">${d.dias}d</td><td>${d.prob05}%</td><td>${d.prob10}%</td></tr>`).join('')}
+      </table>
+    </div>` : '';
+
   document.getElementById('numeros').innerHTML = `
     <div class="numeros-grid">
       <table class="tabela">
@@ -216,6 +226,7 @@ function secNumeros(r) {
         ${macroHTML}
       </div>
     </div>
+    ${distEsperaHTML}
     <p class="aviso-nota">Análise baseada em padrões históricos. Não constitui aconselhamento financeiro — taxas futuras são incertas.</p>
   `;
 }
