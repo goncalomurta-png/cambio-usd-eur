@@ -17,7 +17,7 @@
 - [x] **I6** — Fee Wise: recalibração dinâmica da API → `scripts/fetch_data.py`
 - [x] **I7** — Break-even: nota de rodapé com premissas (juro simples, APY usado) → `js/relatorio.js`
 - [x] **I8** — Aviso visual ⚠️ laranja quando dados > 1 dia de atraso → `js/analise.js` + `css/style.css`
-- [ ] **I9** — Calendário macro hardcoded a 2026; sem fallback para 2027+ → `data/historico.json`
+- [x] **I9** — Calendário macro hardcoded a 2026; sem fallback para 2027+ → `data/historico.json` (resolvido: `getEventosMacro` lê ano dinamicamente, `fed_2027`/`bce_2027` já presentes)
 - [x] **I10** — Nota metodologia: "padrão sazonal, não previsão" no UI → `js/relatorio.js`
 
 ## MELHORIA
@@ -30,14 +30,14 @@
 
 ## NOVAS FUNCIONALIDADES (confirmadas para execução)
 
-- [ ] **N1** — Distribuição de probabilidade da espera (% hipótese taxa subir X% em Y dias)
-- [ ] **N2** — Arquivo de relatórios: guardar cada análise com timestamp em localStorage
-- [ ] **N3** — Alerta visual: botão "Definir alerta de taxa" com notificação browser quando taxa atingir target
+- [x] **N1** — Distribuição de probabilidade da espera (% hipótese taxa subir X% em Y dias) → `js/analise.js` (`calcularDistribuicaoEspera`)
+- [x] **N2** — Arquivo de relatórios: guardar cada análise com timestamp em localStorage → `js/relatorio.js` (`guardarArquivo`/`mostrarArquivo`, botão "📋 Histórico")
+- [x] **N3** — Alerta visual: botão "Definir alerta de taxa" com notificação browser quando taxa atingir target → `js/relatorio.js` (`configurarAlerta`/`verificarAlerta`, botão "🔔 Alerta")
 - [x] **N4** — Estratégias parciais 25/50/75% com EUR calculado — visível em CONVERSÃO PARCIAL → `js/relatorio.js`
-- [ ] **N5** — Adicionar calendário macro 2027 e mecanismo de actualização anual
+- [x] **N5** — Adicionar calendário macro 2027 e mecanismo de actualização anual → `data/historico.json` tem `fed_2027`/`bce_2027`; leitura dinâmica em `js/analise.js`
 
 ---
 
 **Histórico recalculado:** ✅ 10.013 observações BCE 1999-2026 (`data/historico.json`)
 
-**Pendentes:** I9, N1, N2, N3, N5
+**Pendentes:** nenhum (ver plan.md/comments.md — P1-P5 já implementados, aguardam validação do Auditor)
