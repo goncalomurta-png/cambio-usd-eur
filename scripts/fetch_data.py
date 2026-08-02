@@ -34,6 +34,52 @@ def _calcular_rsi(prices, period=14):
         return 100.0
     return 100 - 100 / (1 + avg_gain / avg_loss)
 
+def _desv_pad(arr):
+    m = _media(arr)
+    return math.sqrt(sum((v - m) ** 2 for v in arr) / len(arr)) if arr else 0.0
+
+def _calcular_ema_series(prices, period):
+    if len(prices) < period:
+        return []
+    k = 2 / (period + 1)
+    ema = _media(prices[:period])
+    result = [ema]
+    for i in range(period, len(prices)):
+        ema = prices[i] * k + ema * (1 - k)
+        result.append(ema)
+    return result
+
+def _calcular_macd(prices, fast=12, slow=26, signal=9):
+    if len(prices) < slow + signal:
+        return None
+    ema_fast = _calcular_ema_series(prices, fast)
+    ema_slow = _calcular_ema_series(prices, slow)
+    if not ema_fast or not ema_slow:
+        return None
+    offset = len(ema_fast) - len(ema_slow)
+    macd_series = [ema_fast[i + offset] - es for i, es in enumerate(ema_slow)]
+    if len(macd_series) < signal:
+        return None
+    signal_series = _calcular_ema_series(macd_series, signal)
+    macd_last   = macd_series[-1]
+    signal_last = signal_series[-1]
+    hist        = macd_last - signal_last
+    macd_prev   = macd_series[-2] if len(macd_series) >= 2 else macd_last
+    signal_prev = signal_series[-2] if len(signal_series) >= 2 else signal_last
+    prev_hist   = macd_prev - signal_prev
+    if hist > 0 and prev_hist <= 0: sinal_cruz = 'alta'
+    elif hist < 0 and prev_hist >= 0: sinal_cruz = 'baixa'
+    else: sinal_cruz = 'sem'
+    return {'histograma': hist, 'sinalCruz': sinal_cruz}
+
+def _calcular_bollinger(prices, period=20, mult=2):
+    if len(prices) < period:
+        return None
+    slice_ = prices[-period:]
+    media_ = _media(slice_)
+    dp     = _desv_pad(slice_)
+    return {'superior': media_ + mult * dp, 'inferior': media_ - mult * dp, 'taxa': prices[-1]}
+
 def _get_janela(dia):
     if dia <=  5: return '1-5'
     if dia <= 10: return '6-10'
@@ -74,6 +120,8 @@ def calcular_score(taxas, taxa_atual, por_janela, hoje_date, flexibilidade=15):
     ma20     = _media(taxas[-20:])
     diff_ma  = (taxa_atual - ma20) / ma20 * 100
     rsi      = _calcular_rsi(taxas, 14)
+    macd     = _calcular_macd(taxas, 12, 26, 9)
+    bollinger = _calcular_bollinger(taxas, 20, 2)
 
     MESES    = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
     mes_nome = MESES[hoje_date.month - 1]
@@ -100,11 +148,19 @@ def calcular_score(taxas, taxa_atual, por_janela, hoje_date, flexibilidade=15):
     if diff_ma > 0.2:   score += 12
     elif diff_ma < -0.2: score -= 12
 
-    # RSI
+    # Indicadores técnicos (RSI + MACD + Bollinger, cap conjunto ±20 — mesma lógica que analise.js)
     tech = 0
     if rsi is not None:
         if rsi > 70: tech -= 10
         elif rsi < 30: tech += 10
+    if macd is not None:
+        if macd['sinalCruz'] == 'alta': tech += 8
+        elif macd['sinalCruz'] == 'baixa': tech -= 8
+    if bollinger is not None:
+        rng = bollinger['superior'] - bollinger['inferior']
+        pos = (bollinger['taxa'] - bollinger['inferior']) / rng if rng else 0.5
+        if pos > 0.80: tech -= 6
+        elif pos < 0.20: tech += 6
     score += max(-20, min(20, tech))
     score  = max(0, min(100, score))
 
@@ -266,21 +322,28 @@ def main():
     taxa_atual = rates[-1]["taxa"] if rates else None
     print(f"Taxa BCE actual: {taxa_atual}")
 
-    amount_ref = config.get("wise_montante_referencia", 5000)
-    wise = fetch_wise(
-        amount_ref,
-        config.get("wise_pais_origem", "GB"),
-        config.get("wise_pais_destino", "DE"),
-    )
+    amount_ref  = config.get("wise_montante_referencia", 5000)
+    amount_ref2 = 1000 if amount_ref != 1000 else 2000
+    origem      = config.get("wise_pais_origem", "GB")
+    destino     = config.get("wise_pais_destino", "DE")
+    wise  = fetch_wise(amount_ref, origem, destino)
+    wise2 = fetch_wise(amount_ref2, origem, destino)
     print(f"Wise ({amount_ref} USD): {wise}")
+    print(f"Wise ({amount_ref2} USD, âncora): {wise2}")
 
-    if wise and wise["fee_usd"] and wise["montante_ref"]:
-        fee_var        = (wise["fee_usd"] - 9.87) / (wise["montante_ref"] - 1000) if wise["montante_ref"] != 1000 else 0.00289
-        fee_fixo       = round(9.87 - fee_var * 1000, 4)
-        fee_variavel_pct = round(fee_var * 100, 4)
-    else:
-        fee_fixo       = 6.98
-        fee_variavel_pct = 0.289
+    fee_fixo, fee_variavel_pct = 6.98, 0.289  # fallback
+    if wise and wise2 and wise["fee_usd"] and wise2["fee_usd"] and wise["montante_ref"] != wise2["montante_ref"]:
+        a, fee_a = wise2["montante_ref"], wise2["fee_usd"]
+        b, fee_b = wise["montante_ref"], wise["fee_usd"]
+        fee_var  = (fee_b - fee_a) / (b - a)
+        fee_fix  = fee_a - fee_var * a
+        if fee_fix >= 0 and 0.1 <= fee_var * 100 <= 1.0:
+            fee_fixo = round(fee_fix, 4)
+            fee_variavel_pct = round(fee_var * 100, 4)
+        else:
+            print(f"Aviso: fee Wise fora do intervalo plausível (fixo={fee_fix:.4f}, var%={fee_var*100:.4f}) — a usar fallback")
+    elif wise and wise["fee_usd"] and wise["montante_ref"]:
+        print("Aviso: só uma cotação Wise disponível — a usar fallback (sem segunda âncora para resolver o sistema)")
 
     if not rates or taxa_atual is None:
         print("ERRO CRÍTICO: sem dados de taxa. A abortar.")
