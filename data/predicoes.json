@@ -4,7 +4,7 @@
     "taxa": 0.87656,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87472,
+    "taxa_7d": 0.87473,
     "correto_7d": null
   },
   {
@@ -12,7 +12,7 @@
     "taxa": 0.8767,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87491,
+    "taxa_7d": 0.87489,
     "correto_7d": null
   },
   {
@@ -28,7 +28,7 @@
     "taxa": 0.87369,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87515,
+    "taxa_7d": 0.87514,
     "correto_7d": null
   },
   {
@@ -36,7 +36,7 @@
     "taxa": 0.87451,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87541,
+    "taxa_7d": 0.87547,
     "correto_7d": null
   },
   {
@@ -44,7 +44,7 @@
     "taxa": 0.87452,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8749,
+    "taxa_7d": 0.87491,
     "correto_7d": null
   },
   {
@@ -52,7 +52,7 @@
     "taxa": 0.87514,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87244,
+    "taxa_7d": 0.87243,
     "correto_7d": null
   },
   {
@@ -60,7 +60,7 @@
     "taxa": 0.87387,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87266,
+    "taxa_7d": 0.8727,
     "correto_7d": null
   },
   {
@@ -76,7 +76,7 @@
     "taxa": 0.87529,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87432,
+    "taxa_7d": 0.87435,
     "correto_7d": null
   },
   {
@@ -84,7 +84,7 @@
     "taxa": 0.87502,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8752,
+    "taxa_7d": 0.87523,
     "correto_7d": null
   },
   {
@@ -108,7 +108,7 @@
     "taxa": 0.87378,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87706,
+    "taxa_7d": 0.87704,
     "correto_7d": null
   },
   {
@@ -116,7 +116,7 @@
     "taxa": 0.87398,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87792,
+    "taxa_7d": 0.87793,
     "correto_7d": null
   },
   {
@@ -124,7 +124,7 @@
     "taxa": 0.87506,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87771,
+    "taxa_7d": 0.8777,
     "correto_7d": null
   },
   {
@@ -132,7 +132,7 @@
     "taxa": 0.87575,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8736,
+    "taxa_7d": 0.87358,
     "correto_7d": null
   },
   {
@@ -148,8 +148,8 @@
     "taxa": 0.87701,
     "score": 66,
     "decisao": "AGUARDAR",
-    "taxa_7d": null,
-    "correto_7d": null
+    "taxa_7d": 0.86817,
+    "correto_7d": false
   },
   {
     "data": "2026-07-28",
@@ -179,6 +179,14 @@
     "data": "2026-08-02",
     "taxa": 0.86944,
     "score": 41,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-08-03",
+    "taxa": 0.86817,
+    "score": 51,
     "decisao": "PARCIAL",
     "taxa_7d": null,
     "correto_7d": null
