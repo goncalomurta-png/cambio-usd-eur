@@ -116,7 +116,7 @@
     "taxa": 0.87398,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87802,
+    "taxa_7d": 0.87805,
     "correto_7d": null
   },
   {
@@ -124,7 +124,7 @@
     "taxa": 0.87506,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87773,
+    "taxa_7d": 0.87774,
     "correto_7d": null
   },
   {
@@ -132,7 +132,7 @@
     "taxa": 0.87575,
     "score": 56,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87336,
+    "taxa_7d": 0.87334,
     "correto_7d": null
   },
   {
@@ -172,7 +172,7 @@
     "taxa": 0.87467,
     "score": 55,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86582,
+    "taxa_7d": 0.86583,
     "correto_7d": null
   },
   {
@@ -188,7 +188,7 @@
     "taxa": 0.86817,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86532,
+    "taxa_7d": 0.86531,
     "correto_7d": null
   },
   {
@@ -196,7 +196,7 @@
     "taxa": 0.86816,
     "score": 41,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86534,
+    "taxa_7d": 0.86538,
     "correto_7d": null
   },
   {
@@ -204,7 +204,7 @@
     "taxa": 0.86628,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86614,
+    "taxa_7d": 0.86616,
     "correto_7d": null
   },
   {
@@ -212,7 +212,7 @@
     "taxa": 0.86567,
     "score": 60,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8655,
+    "taxa_7d": 0.86552,
     "correto_7d": null
   },
   {
@@ -220,7 +220,7 @@
     "taxa": 0.86546,
     "score": 60,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8628,
+    "taxa_7d": 0.86274,
     "correto_7d": null
   },
   {
@@ -228,7 +228,7 @@
     "taxa": 0.86509,
     "score": 52,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86362,
+    "taxa_7d": 0.8637,
     "correto_7d": null
   },
   {
@@ -236,7 +236,7 @@
     "taxa": 0.86609,
     "score": 42,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.86237,
     "correto_7d": null
   },
   {
@@ -266,6 +266,14 @@
   {
     "data": "2026-08-18",
     "taxa": 0.86362,
+    "score": 62,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-08-19",
+    "taxa": 0.86237,
     "score": 62,
     "decisao": "PARCIAL",
     "taxa_7d": null,
