@@ -308,7 +308,7 @@
     "taxa": 0.85672,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8618,
+    "taxa_7d": 0.86178,
     "correto_7d": null
   },
   {
@@ -316,7 +316,7 @@
     "taxa": 0.85654,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86262,
+    "taxa_7d": 0.8626,
     "correto_7d": null
   },
   {
@@ -324,7 +324,7 @@
     "taxa": 0.85793,
     "score": 43,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86002,
+    "taxa_7d": 0.85997,
     "correto_7d": null
   },
   {
@@ -332,7 +332,7 @@
     "taxa": 0.85818,
     "score": 43,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.85992,
+    "taxa_7d": 0.85986,
     "correto_7d": null
   },
   {
@@ -340,7 +340,7 @@
     "taxa": 0.86071,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86063,
+    "taxa_7d": 0.86051,
     "correto_7d": null
   },
   {
@@ -348,7 +348,7 @@
     "taxa": 0.86154,
     "score": 54,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.86022,
     "correto_7d": null
   },
   {
@@ -379,6 +379,14 @@
     "data": "2026-09-07",
     "taxa": 0.86063,
     "score": 59,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-09-08",
+    "taxa": 0.86022,
+    "score": 47,
     "decisao": "PARCIAL",
     "taxa_7d": null,
     "correto_7d": null
