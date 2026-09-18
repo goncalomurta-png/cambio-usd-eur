@@ -1,15 +1,15 @@
 {
-  "updated": "2026-09-17",
-  "taxa_atual": 0.86832,
-  "wise_taxa": 0.871194,
+  "updated": "2026-09-18",
+  "taxa_atual": 0.86978,
+  "wise_taxa": 0.870587,
   "wise_fee_usd_ref": 21.43,
-  "wise_eur_ref": 4337.3,
+  "wise_eur_ref": 4334.28,
   "wise_montante_ref": 5000,
   "wise_fee_fixo": 1.48,
   "wise_fee_variavel_pct": 0.399,
   "juro_usd": 3.39,
   "juro_eur": 1.98,
-  "score_hoje": 51,
+  "score_hoje": 53,
   "decisao_hoje": "PARCIAL",
   "acuidade": {
     "dia": {
@@ -34,10 +34,6 @@
     }
   },
   "historico": [
-    {
-      "data": "2026-03-01",
-      "taxa": 0.84731
-    },
     {
       "data": "2026-03-02",
       "taxa": 0.85053
@@ -812,15 +808,15 @@
     },
     {
       "data": "2026-09-11",
-      "taxa": 0.8609
+      "taxa": 0.86092
     },
     {
       "data": "2026-09-12",
-      "taxa": 0.86107
+      "taxa": 0.8611
     },
     {
       "data": "2026-09-13",
-      "taxa": 0.86123
+      "taxa": 0.86125
     },
     {
       "data": "2026-09-14",
@@ -832,11 +828,15 @@
     },
     {
       "data": "2026-09-16",
-      "taxa": 0.86567
+      "taxa": 0.86566
     },
     {
       "data": "2026-09-17",
-      "taxa": 0.86832
+      "taxa": 0.86879
+    },
+    {
+      "data": "2026-09-18",
+      "taxa": 0.86978
     }
   ]
 }
