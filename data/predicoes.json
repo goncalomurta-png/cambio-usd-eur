@@ -516,7 +516,7 @@
     "taxa": 0.88081,
     "score": 61,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89007,
+    "taxa_7d": 0.89011,
     "correto_7d": null
   },
   {
@@ -524,7 +524,7 @@
     "taxa": 0.88242,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89241,
+    "taxa_7d": 0.89238,
     "correto_7d": null
   },
   {
@@ -532,7 +532,7 @@
     "taxa": 0.88529,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.89156,
     "correto_7d": null
   },
   {
@@ -562,6 +562,14 @@
   {
     "data": "2026-10-08",
     "taxa": 0.89241,
+    "score": 38,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-10-09",
+    "taxa": 0.89156,
     "score": 38,
     "decisao": "PARCIAL",
     "taxa_7d": null,

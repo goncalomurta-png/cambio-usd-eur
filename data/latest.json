@@ -1,9 +1,9 @@
 {
-  "updated": "2026-10-08",
-  "taxa_atual": 0.89241,
-  "wise_taxa": 0.891822,
+  "updated": "2026-10-09",
+  "taxa_atual": 0.89156,
+  "wise_taxa": 0.892738,
   "wise_fee_usd_ref": 21.43,
-  "wise_eur_ref": 4440.0,
+  "wise_eur_ref": 4444.56,
   "wise_montante_ref": 5000,
   "wise_fee_fixo": 1.48,
   "wise_fee_variavel_pct": 0.399,
@@ -34,10 +34,6 @@
     }
   },
   "historico": [
-    {
-      "data": "2026-03-22",
-      "taxa": 0.86686
-    },
     {
       "data": "2026-03-23",
       "taxa": 0.86596
@@ -832,11 +828,15 @@
     },
     {
       "data": "2026-10-07",
-      "taxa": 0.89007
+      "taxa": 0.89011
     },
     {
       "data": "2026-10-08",
-      "taxa": 0.89241
+      "taxa": 0.89238
+    },
+    {
+      "data": "2026-10-09",
+      "taxa": 0.89156
     }
   ]
 }
