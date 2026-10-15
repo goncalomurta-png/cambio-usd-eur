@@ -308,7 +308,7 @@
     "taxa": 0.85672,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86215,
+    "taxa_7d": 0.86213,
     "correto_7d": null
   },
   {
@@ -316,7 +316,7 @@
     "taxa": 0.85654,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86306,
+    "taxa_7d": 0.86307,
     "correto_7d": null
   },
   {
@@ -324,7 +324,7 @@
     "taxa": 0.85793,
     "score": 43,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86035,
+    "taxa_7d": 0.86033,
     "correto_7d": null
   },
   {
@@ -332,7 +332,7 @@
     "taxa": 0.85818,
     "score": 43,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86027,
+    "taxa_7d": 0.86026,
     "correto_7d": null
   },
   {
@@ -372,7 +372,7 @@
     "taxa": 0.86012,
     "score": 55,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8611,
+    "taxa_7d": 0.86111,
     "correto_7d": null
   },
   {
@@ -380,7 +380,7 @@
     "taxa": 0.86063,
     "score": 59,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86392,
+    "taxa_7d": 0.86393,
     "correto_7d": null
   },
   {
@@ -388,7 +388,7 @@
     "taxa": 0.86022,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86609,
+    "taxa_7d": 0.8661,
     "correto_7d": null
   },
   {
@@ -396,7 +396,7 @@
     "taxa": 0.85945,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86583,
+    "taxa_7d": 0.86584,
     "correto_7d": null
   },
   {
@@ -404,7 +404,7 @@
     "taxa": 0.85929,
     "score": 47,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.86922,
+    "taxa_7d": 0.86926,
     "correto_7d": null
   },
   {
@@ -428,7 +428,7 @@
     "taxa": 0.86563,
     "score": 60,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8712,
+    "taxa_7d": 0.87121,
     "correto_7d": null
   },
   {
@@ -436,7 +436,7 @@
     "taxa": 0.86561,
     "score": 61,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87407,
+    "taxa_7d": 0.87408,
     "correto_7d": null
   },
   {
@@ -444,7 +444,7 @@
     "taxa": 0.86832,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8776,
+    "taxa_7d": 0.87762,
     "correto_7d": null
   },
   {
@@ -452,7 +452,7 @@
     "taxa": 0.86978,
     "score": 53,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87747,
+    "taxa_7d": 0.87749,
     "correto_7d": null
   },
   {
@@ -460,7 +460,7 @@
     "taxa": 0.87072,
     "score": 52,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87747,
+    "taxa_7d": 0.87748,
     "correto_7d": null
   },
   {
@@ -468,7 +468,7 @@
     "taxa": 0.87083,
     "score": 52,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.87986,
+    "taxa_7d": 0.87987,
     "correto_7d": null
   },
   {
@@ -476,7 +476,7 @@
     "taxa": 0.87334,
     "score": 54,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8809,
+    "taxa_7d": 0.88092,
     "correto_7d": null
   },
   {
@@ -484,7 +484,7 @@
     "taxa": 0.87695,
     "score": 54,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.88286,
+    "taxa_7d": 0.88285,
     "correto_7d": null
   },
   {
@@ -492,7 +492,7 @@
     "taxa": 0.87732,
     "score": 54,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.88574,
+    "taxa_7d": 0.8857,
     "correto_7d": null
   },
   {
@@ -500,7 +500,7 @@
     "taxa": 0.87727,
     "score": 61,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89034,
+    "taxa_7d": 0.8903,
     "correto_7d": null
   },
   {
@@ -508,7 +508,7 @@
     "taxa": 0.87946,
     "score": 61,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.88991,
+    "taxa_7d": 0.8899,
     "correto_7d": null
   },
   {
@@ -516,7 +516,7 @@
     "taxa": 0.88081,
     "score": 61,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89029,
+    "taxa_7d": 0.89028,
     "correto_7d": null
   },
   {
@@ -524,7 +524,7 @@
     "taxa": 0.88242,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89254,
+    "taxa_7d": 0.89255,
     "correto_7d": null
   },
   {
@@ -532,7 +532,7 @@
     "taxa": 0.88529,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.8915,
+    "taxa_7d": 0.89152,
     "correto_7d": null
   },
   {
@@ -540,7 +540,7 @@
     "taxa": 0.88963,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89264,
+    "taxa_7d": 0.89265,
     "correto_7d": null
   },
   {
@@ -548,7 +548,7 @@
     "taxa": 0.88997,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89301,
+    "taxa_7d": 0.89304,
     "correto_7d": null
   },
   {
@@ -556,7 +556,7 @@
     "taxa": 0.88972,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.89288,
+    "taxa_7d": 0.8929,
     "correto_7d": null
   },
   {
@@ -564,7 +564,7 @@
     "taxa": 0.89241,
     "score": 38,
     "decisao": "PARCIAL",
-    "taxa_7d": null,
+    "taxa_7d": 0.89306,
     "correto_7d": null
   },
   {
@@ -587,6 +587,14 @@
     "data": "2026-10-14",
     "taxa": 0.89288,
     "score": 41,
+    "decisao": "PARCIAL",
+    "taxa_7d": null,
+    "correto_7d": null
+  },
+  {
+    "data": "2026-10-15",
+    "taxa": 0.89306,
+    "score": 49,
     "decisao": "PARCIAL",
     "taxa_7d": null,
     "correto_7d": null
