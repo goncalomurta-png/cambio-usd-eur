@@ -660,7 +660,7 @@
     "taxa": 0.89138,
     "score": 58,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.90283,
+    "taxa_7d": 0.90284,
     "correto_7d": null
   },
   {
@@ -676,7 +676,7 @@
     "taxa": 0.89397,
     "score": 54,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.91054,
+    "taxa_7d": 0.91022,
     "correto_7d": null
   },
   {
@@ -684,7 +684,7 @@
     "taxa": 0.90199,
     "score": 51,
     "decisao": "PARCIAL",
-    "taxa_7d": 0.91053,
+    "taxa_7d": 0.91,
     "correto_7d": null
   },
   {

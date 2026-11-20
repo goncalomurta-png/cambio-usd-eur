@@ -1,9 +1,9 @@
 {
   "updated": "2026-11-20",
-  "taxa_atual": 0.91053,
-  "wise_taxa": 0.911328,
+  "taxa_atual": 0.91,
+  "wise_taxa": 0.911743,
   "wise_fee_usd_ref": 21.43,
-  "wise_eur_ref": 4537.11,
+  "wise_eur_ref": 4539.18,
   "wise_montante_ref": 5000,
   "wise_fee_fixo": 1.48,
   "wise_fee_variavel_pct": 0.399,
@@ -808,15 +808,15 @@
     },
     {
       "data": "2026-11-13",
-      "taxa": 0.90283
+      "taxa": 0.90284
     },
     {
       "data": "2026-11-14",
-      "taxa": 0.90317
+      "taxa": 0.90318
     },
     {
       "data": "2026-11-15",
-      "taxa": 0.90349
+      "taxa": 0.9035
     },
     {
       "data": "2026-11-16",
@@ -828,15 +828,15 @@
     },
     {
       "data": "2026-11-18",
-      "taxa": 0.9097
+      "taxa": 0.90971
     },
     {
       "data": "2026-11-19",
-      "taxa": 0.91054
+      "taxa": 0.91022
     },
     {
       "data": "2026-11-20",
-      "taxa": 0.91053
+      "taxa": 0.91
     }
   ]
 }
